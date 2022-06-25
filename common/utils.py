@@ -4,8 +4,44 @@ import matplotlib.patches as patches
 import matplotlib.colors as mcolors
 
 from collections import namedtuple
-Rectangle = namedtuple('Rectangle', ['x', 'y', 'w', 'h'])
 
+PositionedRectangle = namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
+Rectangle = namedtuple('Rectangle', ['w', 'h'])
+
+def read_instance(filename):
+    """
+    Parameters
+    ----------
+    filename : string
+        file of the instance. Its format is:
+        total_width
+        n_rectangles
+        w_1 h_1
+        ......
+        w_n h_n
+
+    Returns
+    -------
+    wt : int
+        size of the width of the strip
+    n : int
+        number of rectangles
+    rectangles : list of namedtuple('Rectangle', ['w', 'h'])
+        A list of rectangles. This contains the width and height of every rectangle.
+    """
+    with open(filename, "r") as f:
+        content = f.read()
+
+    lines = content.split("\n")
+    wt = int(lines[0].split(" ")[0])
+    n = int(lines[1].split(" ")[0])
+
+    cont = np.asarray([lines[i+2].split(" ") for i in range(n)], dtype=int)
+
+    rectangles = [Rectangle(cont[i, 0], cont[i, 1]) for i in range(len(cont))]
+
+    return wt, n, rectangles
+    
 
 def read_solution(filename):
     """
@@ -25,7 +61,7 @@ def read_solution(filename):
         size of the width of the strip
     ht : int
         size of the height of the strip
-    rectangles : list of namedtuple('Rectangle', ['x', 'y', 'w', 'h'])
+    rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     """
@@ -38,7 +74,7 @@ def read_solution(filename):
 
     cont = np.asarray([lines[i+2].split(" ") for i in range(n)], dtype = int)
     
-    rectangles = [Rectangle(cont[i,2], cont[i,3], cont[i,0], cont[i,1]) for i in range(len(cont))]
+    rectangles = [PositionedRectangle(cont[i, 2], cont[i, 3], cont[i, 0], cont[i, 1]) for i in range(len(cont))]
     
     return wt, ht, rectangles
 
@@ -54,7 +90,7 @@ def visualize(width, height, rectangles, ax = None, plot_width = -1):
         size of the width of the strip
     height : number
         size of the height of the strip
-    rectangles : list of namedtuple('Rectangle', ['x', 'y', 'w', 'h'])
+    rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
