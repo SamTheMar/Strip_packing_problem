@@ -22,7 +22,7 @@ def read_instance(filename):
 
     Returns
     -------
-    wt : int
+    W : int
         size of the width of the strip
     n : int
         number of rectangles
@@ -33,14 +33,14 @@ def read_instance(filename):
         content = f.read()
 
     lines = content.split("\n")
-    wt = int(lines[0].split(" ")[0])
+    W = int(lines[0].split(" ")[0])
     n = int(lines[1].split(" ")[0])
 
     cont = np.asarray([lines[i+2].split(" ") for i in range(n)], dtype=int)
 
     rectangles = [Rectangle(cont[i, 0], cont[i, 1]) for i in range(len(cont))]
 
-    return wt, n, rectangles
+    return W, n, rectangles
     
 
 def read_solution(filename):
@@ -57,9 +57,9 @@ def read_solution(filename):
 
     Returns
     -------
-    wt : int
+    W : int
         size of the width of the strip
-    ht : int
+    H : int
         size of the height of the strip
     rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
@@ -69,14 +69,14 @@ def read_solution(filename):
         content = f.read()
 
     lines = content.split("\n")
-    wt, ht = (int(x) for x in lines[0].split(" "))
+    W, H = (int(x) for x in lines[0].split(" "))
     n = int(lines[1].split(" ")[0])
 
     cont = np.asarray([lines[i+2].split(" ") for i in range(n)], dtype = int)
     
     rectangles = [PositionedRectangle(cont[i, 2], cont[i, 3], cont[i, 0], cont[i, 1]) for i in range(len(cont))]
     
-    return wt, ht, rectangles
+    return W, H, rectangles
 
 
 def visualize(width, height, rectangles, ax = None, plot_width = -1):
