@@ -137,7 +137,7 @@ def visualize(width, height, rectangles, ax = None, plot_width = -1):
                 linewidth = linewidth
             )
         )
-        ax.text(r.x + 0.5 * r.w, r.y + 0.5 * r.h, str(idx+1), fontsize = 'xx-large')
+        ax.text(r.x + 0.25, r.y + 0.25, str(idx+1), fontsize = 'xx-large')
 
     ax.set_xlim(0, width)
     ax.set_ylim(0, height)
