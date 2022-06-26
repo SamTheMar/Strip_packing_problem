@@ -79,6 +79,28 @@ def read_solution(filename):
     return W, H, rectangles
 
 
+def save_solution(filename, W, H, rectangles):
+    """
+    Parameters
+    ----------
+    filename : string
+        absolute or relative path toof the solution file
+    W : int
+        total width of the strip
+    H : int
+        total height of the strip
+    rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
+        A list of rectangles. This contains bottom left x and y coordinate and
+        the width and height of every rectangle.
+    """
+    with open(filename, "w") as f:
+        f.write(f"{W} {H}\n")
+        f.write(f"{len(rectangles)}\n")
+
+        for rect in rectangles:
+            f.write(f"{rect.w} {rect.h} {rect.x} {rect.y}\n")
+
+
 def visualize(width, height, rectangles, ax = None, plot_width = -1):
     """
     Visualization of the a strip of size width x height with the layout of the rectangles.
