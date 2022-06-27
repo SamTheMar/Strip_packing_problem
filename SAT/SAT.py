@@ -5,28 +5,35 @@ from z3 import *
 import sys
 sys.path.append("../common")
 
-from utils import read_instance, PositionedRectangle
+from utils import PositionedRectangle
+from SAT_utils import order_decode
 
 
-def decode_solver(s):
-    # TODO: finish this
+def decode_solver(s, rectangles, px, py):
     """
-    Decodes the variables of the ground solver
+    Decode the variables of the ground solver.
+
     Parameters
     ----------
-    W : int
-        total width of the strip
+    s : z3.Solver
+        solver with a SAT interpretation of the problem.
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
+    px : list of bool
+        encoded variables for the x-coordinates of the rectangles.
+    py : list of bool
+        encoded variables for the y-coordinates of the rectangles.
 
     Returns
     -------
-    H : int
-        size of the height of the strip
-    rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
+    positioned_rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     """
+    if s.check() == unsat:
+        return []
+
+    m = s.model()
 
     px_eval = [[m.evaluate(px[i][j], model_completion = True) for j in range(len(px[i]))] for i in range(len(px))]
     x_values = [order_decode(p) for p in px_eval]
@@ -34,11 +41,11 @@ def decode_solver(s):
     py_eval = [[m.evaluate(py[i][j], model_completion = True) for j in range(len(py[i]))] for i in range(len(px))]
     y_values = [order_decode(p) for p in py_eval]
 
-
     return [PositionedRectangle(x, y, rect.w, rect.h) for x, y, rect in zip(x_values, y_values, rectangles)]
 
 
 def order_encode_variables(W, H, rectangles):
+    n = len(rectangles)
     px = [[Bool(f"px_{i+1}_{e}") for e in range(W - rectangles[i].w)] for i in range(n)]
     py = [[Bool(f"py_{i+1}_{f}") for f in range(H - rectangles[i].h)] for i in range(n)]
 
