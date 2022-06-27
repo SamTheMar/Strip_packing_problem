@@ -160,17 +160,16 @@ def SAT_solve(W, H, rectangles):
     non_overlapping_3l_constraints(s, rectangles, W, H, lr, ud, px, py)
 
     if s.check() == unsat:
-        print("S is unsat")
         return []
 
     return decode_solver(s, rectangles, px, py)
 
 
-# TODO: test this
-def bisection_solve(W, H_lb, H_ub, rectangles):
+# TODO add some sort of timeout
+def bisection_solve(W, H_lb, H_ub, rectangles, verbose=True):
     """
     Find the optimal height of the strip packing problem using SAT order encoding.
-    The optimization is done using the bisection method
+    The optimization is done using the bisection method. The lower bound is tried first.
 
     Parameters
     ----------
@@ -182,6 +181,7 @@ def bisection_solve(W, H_lb, H_ub, rectangles):
         upper bound for the height of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
+    verbose : bool, default True
 
     Returns
     -------
@@ -191,21 +191,46 @@ def bisection_solve(W, H_lb, H_ub, rectangles):
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     """
+    i = 0 # counter for logging
+    positioned_rectangles_lastSAT = [] #to keep track of the last SAT height
+
+    if verbose: print("\nUsing bisection method:")
     while H_lb < H_ub:
+        i += 1
+        if verbose: print(f"\nCycle {i}: \n{H_lb} <= H <= {H_ub}.")
+
         H = (H_lb + H_ub)//2
-        s = SAT_solve(W, H, rectangles)
-        if s.check() == sat:
+        if verbose: print(f"Trying H = {H}.")
+
+        positioned_rectangles = SAT_solve(W, H, rectangles)
+        if len(positioned_rectangles) > 0:
+            positioned_rectangles_lastSAT = positioned_rectangles #save this configuration
             H_ub = H
+            if verbose:
+                print(f"SAT.")
         else:
             H_lb = H + 1
+            if verbose:
+                print(f"UNSAT.")
 
-    positioned_rectangles = decode_solver(s)
-    return H, positioned_rectangles
+    # if the last height is UNSAT, use the configuration used for the previous height
+    if H_lb > H:
+        positioned_rectangles = positioned_rectangles_lastSAT
+
+    if verbose:
+        print(f"\nOptimal value: H = {H_lb}.")
+    return H_lb, positioned_rectangles
 
 
-def SAT_optmize(W, rectangles):
+def SAT_optimize(W, rectangles, verbose=True):
     """
     Find the optimal height of the strip packing problem using SAT order encoding.
+    The bisection method is used to optimize the strip height.
+
+    The lower bound for the strip height is given by: ceil(total_area/strip_width),
+    The upper bound is the sum of the heights of the rectangles.
+
+    The lower bound for the height is tried first before the bisection method.
 
     Parameters
     ----------
@@ -213,11 +238,12 @@ def SAT_optmize(W, rectangles):
         total width of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
+    verbose : bool, default True
 
     Returns
     -------
     H : int
-        size of the height of the strip
+        optimal height of the strip
     rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
@@ -227,4 +253,17 @@ def SAT_optmize(W, rectangles):
 
     H_lb = int(np.ceil((total_area)/W))
 
-    return bisection_solve(W, H_lb, H_ub, rectangles)
+    if verbose:
+        print("Finding optimal strip height.")
+        print("Initial estimation:")
+        print(f"{H_lb} <= H <= {H_ub}.")
+        print("\nTrying lower bound first.")
+
+    positioned_rectangles = SAT_solve(W, H_lb, rectangles)
+    if len(positioned_rectangles) > 0:
+        if verbose: print(f"Lower bound is SAT.\nOptimal value: H = {H_lb}.")
+        return H_lb, positioned_rectangles
+
+    if verbose:
+        print("Lower bound is UNSAT.")
+    return bisection_solve(W, H_lb+1, H_ub, rectangles, verbose)
