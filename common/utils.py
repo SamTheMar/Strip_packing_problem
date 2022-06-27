@@ -23,7 +23,7 @@ def read_instance(filename):
     Returns
     -------
     W : int
-        size of the width of the strip
+        total width of the strip
     n : int
         number of rectangles
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
@@ -58,9 +58,9 @@ def read_solution(filename):
     Returns
     -------
     W : int
-        size of the width of the strip
+        total width of the strip
     H : int
-        size of the height of the strip
+        total height of the strip
     rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
@@ -84,7 +84,7 @@ def save_solution(filename, W, H, rectangles):
     Parameters
     ----------
     filename : string
-        absolute or relative path toof the solution file
+        absolute or relative path of the solution file
     W : int
         total width of the strip
     H : int
@@ -109,16 +109,16 @@ def visualize(width, height, rectangles, ax = None, plot_width = -1):
     Parameters
     ----------
     width : number
-        size of the width of the strip
+        total width of the strip
     height : number
-        size of the height of the strip
+        total height of the strip
     rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
         The axes on which to show the plot
     plot_width : int, default 720
-        Plot height in pixels.
+        Plot width in pixels.
 
     Returns
     -------
@@ -193,8 +193,7 @@ def visualize_from_file(filename, **kwargs):
         w_1 h_1 x_1 y_1
         ......
         w_n h_n x_n y_n
-
-    kwargs
+    kwargs : dict
         keyowrd arguments passed to ``visualize``
 
     Returns
