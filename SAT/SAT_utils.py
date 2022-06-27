@@ -23,7 +23,6 @@ def order_encode(value, vmin = 0, vmax = -1):
     if value < vmin:
         print("Attention! The encoded value is smaller than the minimum value of the domain!")
 
-
     encoding = []
     for i in range(vmin, vmax):
         encoding.append(value <= i)
