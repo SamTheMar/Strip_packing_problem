@@ -30,9 +30,6 @@ def decode_solver(s, rectangles, px, py):
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     """
-    if s.check() == unsat:
-        return []
-
     m = s.model()
 
     px_eval = [[m.evaluate(px[i][j], model_completion = True) for j in range(len(px[i]))] for i in range(len(px))]
@@ -147,19 +144,26 @@ def SAT_solve(W, H, rectangles):
 
     Returns
     -------
-    s : z3.Solver
-        if the problem is SAT, the solver has calculated the encoded solution
+    positioned_rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
+        A list of rectangles. This contains bottom left x and y coordinate and
+        the width and height of every rectangle.
+        If the problem is UNSAT this list is empty.
     """
     px, py, lr, ud = order_encode_variables(W, H, rectangles)
     s = Solver()
 
     if not valid_problem(W, H, rectangles):
-        s.add(False)
-        return s
+        return []
+
     ordering_constraints(s, rectangles, px, py)
     non_overlapping_4l_constraints(s, rectangles, W, H, lr, ud)
     non_overlapping_3l_constraints(s, rectangles, W, H, lr, ud, px, py)
-    return s
+
+    if s.check() == unsat:
+        print("S is unsat")
+        return []
+
+    return decode_solver(s, rectangles, px, py)
 
 
 # TODO: test this
