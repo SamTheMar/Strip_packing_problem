@@ -101,16 +101,16 @@ def save_solution(filename, W, H, rectangles):
             f.write(f"{rect.w} {rect.h} {rect.x} {rect.y}\n")
 
 
-def visualize(width, height, rectangles, ax = None, plot_width = -1):
+def visualize(W, H, rectangles, ax = None, plot_width = -1):
     """
     Visualization of the a strip of size width x height with the layout of the rectangles.
     The rectangles are annotated with their place in the input list on the figure.
 
     Parameters
     ----------
-    width : number
+    W : int
         total width of the strip
-    height : number
+    H : int
         total height of the strip
     rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
         A list of rectangles. This contains bottom left x and y coordinate and
@@ -129,7 +129,7 @@ def visualize(width, height, rectangles, ax = None, plot_width = -1):
         if plot_width == -1:
             plot_width = 720
 
-        aspect = height/width
+        aspect = H/W
         fw, fh, dpi = plot_width, plot_width*aspect, 100
         fig, ax = plt.subplots(figsize = (fw/dpi, fh/dpi), dpi = dpi)
 
@@ -139,8 +139,8 @@ def visualize(width, height, rectangles, ax = None, plot_width = -1):
     ax.add_patch(
         patches.Rectangle(
             (0, 0),  # (x,y)
-            width,  # width
-            height,  # height
+            W,  # width
+            H,  # height
             hatch='x',
             fill=False,
         )
@@ -161,11 +161,11 @@ def visualize(width, height, rectangles, ax = None, plot_width = -1):
         )
         ax.text(r.x + 0.25, r.y + 0.25, str(idx+1), fontsize = 'xx-large')
 
-    ax.set_xlim(0, width)
-    ax.set_ylim(0, height)
+    ax.set_xlim(0, W)
+    ax.set_ylim(0, H)
 
-    ax.set_xticks(np.arange(width))
-    ax.set_yticks(np.arange(height))
+    ax.set_xticks(np.arange(W))
+    ax.set_yticks(np.arange(H))
 
     ax.set_aspect('equal', adjustable='box')
 
