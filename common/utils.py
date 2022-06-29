@@ -136,16 +136,6 @@ def visualize(W, H, rectangles, ax = None, plot_width = -1):
     else:
         fig = ax.get_figure()
 
-    ax.add_patch(
-        patches.Rectangle(
-            (0, 0),  # (x,y)
-            W,  # width
-            H,  # height
-            hatch='x',
-            fill=False,
-        )
-    )
-
     colors = list(mcolors.TABLEAU_COLORS.values())
 
     for idx, r in enumerate(rectangles):
