@@ -1,4 +1,3 @@
-from turtle import position
 import numpy as np
 from z3 import *
 
@@ -16,15 +15,6 @@ def two_largest_index(rectangles):
     second_largest = sorted_area[-2]
     return area.index(largest), area.index(second_largest)
 
-def max_area(rectangles):
-    ind_max = 0
-    area_max = rectangles[0].w * rectangles[0].h
-    for i in range(len(rectangles)):
-        if rectangles[i].w > area_max:
-            ind_max = i
-            area_max = rectangles[i].w * rectangles[i].h
-
-    return ind_max
 
 def decode_solver(s, rectangles, px, py):
     """
@@ -58,17 +48,6 @@ def decode_solver(s, rectangles, px, py):
     return [PositionedRectangle(x, y, rect.w, rect.h) for x, y, rect in zip(x_values, y_values, rectangles)]
 
 
-def order_encode_variables(W, H, rectangles):
-    n = len(rectangles)
-    px = [[Bool(f"px_{i+1}_{e}") for e in range(W - rectangles[i].w)] for i in range(n)]
-    py = [[Bool(f"py_{i+1}_{f}") for f in range(H - rectangles[i].h)] for i in range(n)]
-
-    lr = [[Bool(f"lr_{i+1}_{j+1}") for j in range(n)] for i in range(n)]
-    ud = [[Bool(f"ud_{i+1}_{j+1}") for j in range(n)] for i in range(n)]
-
-    return px, py, lr, ud
-
-
 def valid_problem(W, H, rectangles):
     for i in range(len(rectangles)):
         if rectangles[i].w > W:
@@ -79,6 +58,125 @@ def valid_problem(W, H, rectangles):
             print("Invalid: there is a rectangle that is taller than the strip!")
             return False
     return True
+
+
+#TODO: review symmetries
+def order_encode_variables(W, H, rectangles, break_symmetries=True):
+    n = len(rectangles)
+    px = [[Bool(f"px_{i+1}_{e}") for e in range(W - rectangles[i].w)] for i in range(n)]
+    py = [[Bool(f"py_{i+1}_{f}") for f in range(H - rectangles[i].h)] for i in range(n)]
+
+    lr = [[Bool(f"lr_{i+1}_{j+1}") for j in range(n)] for i in range(n)]
+    ud = [[Bool(f"ud_{i+1}_{j+1}") for j in range(n)] for i in range(n)]
+
+    if break_symmetries:
+        # LS: reduce domain of largest rectangle
+        m = np.argmax([r.w * r.h for r in rectangles])
+        px[m] = px[m][:len(px[m])//2]
+        py[m] = px[m][:len(py[m])//2]
+
+    return px, py, lr, ud
+
+
+def add_false_before(s, rectangles, direction, index_1, index_2, relative_position_encoding, coordinate_encoding):
+    """
+    I.e. for the x-coordinate:
+    rectangle j cannot be at the left of the right edge of rectangle i.
+    Due to order encoding, the clause then looks like this:
+     - i is left of j:
+        lr[i][j] => forall k <= i: ~px[j][k].
+
+    For the y-coordinate the clause is:
+     - i is under of j
+        ud[i][j] => forall k <= i: ~py[j][k].
+
+    Parameters
+    ----------
+    s : z3.Solver
+        solver on which to add the clauses
+    rectangles : list of namedtuple('Rectangle', ['w', 'h'])
+        A list of rectangles. This contains the width and height of every rectangle.
+    direction : string
+        either 'x' or 'y'.
+    index_1 : int
+        index of the first rectangle.
+    index_2 : int
+        index of the second rectangle.
+    relative_position_encoding : list of z3.Bool
+        encoding of the variable representing the relative position of rectangles i and j
+        for the coordinate of interest.
+        I.e. lr for the x-coordinate and ud for the y-coordinate.
+    coordinate_encoding : list of z3.Bool
+        order encoding of the coordinate. I.e. px for 
+        I.e. px for the x-coordinate and py for the y-coordinate.
+    """
+    if direction == 'x':
+        rectangle_measure = rectangles[index_1].w
+    elif direction == 'y':
+        rectangle_measure = rectangles[index_1].h
+    else:
+        print("The direction must be either 'x' or 'y'")
+        return
+
+    for k in range(min(rectangle_measure, len(coordinate_encoding[index_2]))):
+        s.add(Or(Not(relative_position_encoding[index_1][index_2]), Not(coordinate_encoding[index_2][k])))
+
+
+def add_clause_3l(s, rectangles, direction, strip_measure, index_1, index_2, relative_position_encoding, coordinate_encoding):
+    """
+    Add the normal 3-literal clause.
+    I.e.
+     - For the x-coordinate:
+        ~lr[i][j] \/ px[i][e] \/ ~px[j][e + w_i].
+
+     - For the y-coordinate:
+        ~ud[i][j] \/ py[i][f] \/ ~py[j][f + h_i].
+
+    Parameters
+    ----------
+    s : z3.Solver
+        solver on which to add the clauses
+    rectangles : list of namedtuple('Rectangle', ['w', 'h'])
+        A list of rectangles. This contains the width and height of every rectangle.
+    direction : string
+        either 'x' or 'y'.
+    strip_measure : int
+        size of the strip along the given direction.
+    index_1 : int
+        index of the first rectangle.
+    index_2 : int
+        index of the second rectangle.
+    relative_position_encoding : list of z3.Bool
+        encoding of the variable representing the relative position of rectangles i and j
+        for the coordinate of interest.
+        I.e. lr for the x-coordinate and ud for the y-coordinate.
+    coordinate_encoding : list of z3.Bool
+        order encoding of the coordinate.
+        I.e. px for the x-coordinate and py for the y-coordinate.
+    """
+    if direction == 'x':
+        rectangle_measure = rectangles[index_1].w
+    elif direction == 'y':
+        rectangle_measure = rectangles[index_1].h
+    else:
+        print("The direction must be either 'x' or 'y'")
+        return
+
+    cp = coordinate_encoding
+    lrud = relative_position_encoding
+
+    # k stands for either e or f
+    for k in range(strip_measure):
+        k1 = k + rectangle_measure
+
+        if k < len(cp[index_1]) and k1 < len(cp[index_2]):
+            s.add(Or(Not(lrud[index_1][index_2]), cp[index_1][k], Not(cp[index_2][k1])))
+
+        if k < len(cp[index_1]) and k1 >= len(cp[index_2]):
+            s.add(Or(Not(lrud[index_1][index_2]), cp[index_1][k]))
+
+        if k >= len(cp[index_1]) and k1 < len(cp[index_2]):
+            s.add(Or(Not(lrud[index_1][index_2]), Not(cp[index_2][k1])))
 
 
 def ordering_constraints(s, rectangles, px, py):
@@ -103,135 +201,103 @@ def non_overlapping_4l_constraints(s, rectangles, W, H, lr, ud):
             s.add(Or(to_add))
 
 
-def non_overlapping_4l_constraints_SB(s, rectangles, W, H, lr, ud):
-    m = max_area(rectangles)
+def non_overlapping_3l_constraints(s, rectangles, W, H, lr, ud, px, py):
+    n = len(rectangles)
 
-    ind_max1, ind_max2 = two_largest_index(rectangles)
+    for i in range(n):
+        for j in range(n):
+            if i==j: continue
+            add_false_before(s, rectangles, 'x', i, j, lr, px)
+            add_false_before(s, rectangles, 'y', i, j, ud, py)
+
+            add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
+            add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
+
+
+def non_overlapping_4l_constraints_SB(s, rectangles, W, H, lr, ud):
+    m = np.argmax([r.w * r.h for r in rectangles]) #index of the largest rectangle
 
     for i in range(len(rectangles)):
         for j in range(i):
             to_add = []
 
-            # Reducing the possibilities for placing large rectangles(LR)
-            if rectangles[i].w + rectangles[j].w <= W:
-                # Breaking symmetries for same-sized rectangles(SR)
-                if rectangles[i].w == rectangles[j].w and rectangles[i].h == rectangles[j].h:
-                    to_add += [lr[i][j]]
-                # FIXME: LS symmetries braking don't work
-                # Reducing the domain for the largest rectangle(LS)
-                elif j == m:
-                    to_add += [lr[j][i]]
-                # Breaking symmetries for the largest pair of rectangles(LP)
-                # elif i==ind_max1 and j==ind_max2:
-                #     to_add += [lr[i][j]]
-                # (LR)
-                else:
-                    to_add += [lr[i][j], lr[j][i]]
-            # (LR)
-            if rectangles[i].h + rectangles[j].h <= H:
+            # LS: Reducing the domain for the largest rectangle
+            if j == m and rectangles[i].w > (W - rectangles[m].w)//2:
+                to_add += [lr[j][i]]
+            # SR: Breaking symmetries for same-sized rectangles
+            elif rectangles[i].w == rectangles[j].w and rectangles[i].h == rectangles[j].h:
+                to_add += [lr[i][j]]
+                s.add(Or(Not(ud[i][j]), lr[j][i]))
+            # LR: Reducing the possibilities for placing large rectangles
+            elif rectangles[i].w + rectangles[j].w > W:
+                pass
+            else:
+                to_add += [lr[i][j], lr[j][i]]
+
+            # LS
+            if j == m and rectangles[i].h > (H - rectangles[m].h)//2:
+                to_add += [ud[j][i]]
+            # SR is already covered
+            # LR
+            elif rectangles[i].h + rectangles[j].h > H:
+                pass
+            else:
                 to_add += [ud[i][j], ud[j][i]]
 
             s.add(Or(to_add))
 
 
-def non_overlapping_3l_constraints(s, rectangles, W, H, lr, ud, px, py):
-    n = len(rectangles)
-    for i in range(n):
-        for j in range(n):
-            if i==j: continue
-
-            # rectangle j cannot be at the left of the right edge of rectangle i
-            for k in range(min(rectangles[i].w, len(px[j]))):
-                s.add(Or(Not(lr[i][j]), Not(px[j][k])))
-
-            if rectangles[i].w + rectangles[j].w <= W:
-                for e in range(W):
-                    e1 = e + rectangles[i].w
-
-                    if e < len(px[i]) and e1 < len(px[j]):
-                        s.add(Or(Not(lr[i][j]), px[i][e], Not(px[j][e1])))
-
-                    if e < len(px[i]) and e1 >= len(px[j]):
-                        s.add(Or(Not(lr[i][j]), px[i][e]))
-
-                    if e >= len(px[i]) and e1 < len(px[j]):
-                        s.add(Or(Not(lr[i][j]), Not(px[j][e1])))
-
-
-            # rectangle j cannot be under of the top edge of rectangle i
-            for k in range(min(rectangles[i].h, len(py[j]))):
-                s.add(Or(Not(ud[i][j]), Not(py[j][k])))
-
-            if rectangles[i].h + rectangles[j].h <= H:
-                for f in range(H):
-                    f1 = f + rectangles[i].h
-
-                    if f < len(py[i]) and f1 < len(py[j]):
-                        s.add(Or(Not(ud[i][j]), py[i][f], Not(py[j][f1])))
-
-                    if f < len(py[i]) and f1 >= len(py[j]):
-                        s.add(Or(Not(ud[i][j]), py[i][f]))
-
-                    if f >= len(py[i]) and f1 < len(py[j]):
-                        s.add(Or(Not(ud[i][j]), Not(py[j][f1])))
-
-
+#TODO: review symmetries
 def non_overlapping_3l_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
     n = len(rectangles)
-    m = max_area(rectangles)
+    m = np.argmax([r.w * r.h for r in rectangles]) #index of rectangle with max area
 
+    print("promacad")
     for i in range(n):
-        for j in range(n):
-            if i == j:
-                continue
-
+        for j in range(i):
             # rectangle j cannot be at the left of the right edge of rectangle i
-            for k in range(min(rectangles[i].w, len(px[j]))):
-                s.add(Or(Not(lr[i][j]), Not(px[j][k])))
-
-            # Reducing the possibilities for placing large rectangles(LR)
-            if rectangles[i].w + rectangles[j].w <= W:
-                # Breaking symmetries for same-sized rectangles(SR)
-                if j > i and rectangles[i].w == rectangles[j].w and rectangles[i].h == rectangles[j].h:
-                    s.add(Or(Not(ud[j][i]), Not(lr[i][j])))
-                # FIXME: LS symmetries braking don't work
-                # Reducing the domain for the largest rectangle(LS)
-                elif i > j and j == m:
-                    pass
-                # (LR)
-                else:
-                    for e in range(W):
-                        e1 = e + rectangles[i].w
-
-                        if e < len(px[i]) and e1 < len(px[j]):
-                            s.add(Or(Not(lr[i][j]), px[i][e], Not(px[j][e1])))
-
-                        if e < len(px[i]) and e1 >= len(px[j]):
-                            s.add(Or(Not(lr[i][j]), px[i][e]))
-
-                        if e >= len(px[i]) and e1 < len(px[j]):
-                            s.add(Or(Not(lr[i][j]), Not(px[j][e1])))
+            add_false_before(s, rectangles, 'x', i, j, lr, px)
+            add_false_before(s, rectangles, 'x', j, i, lr, px)
 
             # rectangle j cannot be under of the top edge of rectangle i
-            for k in range(min(rectangles[i].h, len(py[j]))):
-                s.add(Or(Not(ud[i][j]), Not(py[j][k])))
+            add_false_before(s, rectangles, 'y', i, j, ud, py)
+            add_false_before(s, rectangles, 'y', j, i, ud, py)
 
-            if rectangles[i].h + rectangles[j].h <= H:
-                for f in range(H):
-                    f1 = f + rectangles[i].h
+            """
+            # LS: Reducing the domain for the largest rectangle
+            if j == m:
+                if rectangles[i].w > (W - rectangles[m].w)//2:
+                    add_clause_3l(s, rectangles, 'x', W, m, i, lr, px)
 
-                    if f < len(py[i]) and f1 < len(py[j]):
-                        s.add(Or(Not(ud[i][j]), py[i][f], Not(py[j][f1])))
+                if rectangles[i].h > (H - rectangles[m].h)//2:
+                    add_clause_3l(s, rectangles, 'y', H, m, i, ud, py)
 
-                    if f < len(py[i]) and f1 >= len(py[j]):
-                        s.add(Or(Not(ud[i][j]), py[i][f]))
+            # SR: Breaking symmetries for same-sized rectangles
+            elif rectangles[i].w == rectangles[j].w and rectangles[i].h == rectangles[j].h:
+                add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
+                add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
+                add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
 
-                    if f >= len(py[i]) and f1 < len(py[j]):
-                        s.add(Or(Not(ud[i][j]), Not(py[j][f1])))
+            # LR: Reducing the possibilities for placing large rectangles
+            elif rectangles[i].w + rectangles[j].w > W:
+                add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
+                add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
+            
+            elif rectangles[i].h + rectangles[j].h > H:
+                add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
+                add_clause_3l(s, rectangles, 'x', W, j, i, lr, px)
+
+            else:
+            """
+            add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
+            add_clause_3l(s, rectangles, 'x', W, j, i, lr, px)
+            add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
+            add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
 
 
-def non_overlapping_constraints(s, rectangles, W, H, lr, ud, px, py, sb=False):
-    if sb:
+def non_overlapping_constraints(s, rectangles, W, H, lr, ud, px, py, break_symmetries):
+    print(f"non_overlapping_constraints: break_symmetries = {break_symmetries}")
+    if break_symmetries:
         non_overlapping_4l_constraints_SB(s, rectangles, W, H, lr, ud)
         non_overlapping_3l_constraints_SB(s, rectangles, W, H, lr, ud, px, py)
     else:
@@ -239,10 +305,13 @@ def non_overlapping_constraints(s, rectangles, W, H, lr, ud, px, py, sb=False):
         non_overlapping_3l_constraints(s, rectangles, W, H, lr, ud, px, py)
 
 
-
-def SAT_solve(W, H, rectangles):
+def SAT_solve(W, H, rectangles, break_symmetries = True):
     """
     Find out if a strip of given width and height is satisfiable using SAT order encoding.
+    By default, symmetry breaking is used. The broken symmetries are:
+     - LR: Reducing the possibilities for placing large rectangles
+     - SR: Breaking symmetries for same-sized rectangles
+     - LS: Reducing the domain for the largest rectangle
 
     Parameters
     ----------
@@ -252,6 +321,8 @@ def SAT_solve(W, H, rectangles):
         total height of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
+    break_symmetries : bool, default True
+        Toggle whether using symmetry breaking
 
     Returns
     -------
@@ -260,14 +331,14 @@ def SAT_solve(W, H, rectangles):
         the width and height of every rectangle.
         If the problem is UNSAT this list is empty.
     """
-    px, py, lr, ud = order_encode_variables(W, H, rectangles)
+    px, py, lr, ud = order_encode_variables(W, H, rectangles, break_symmetries)
     s = Solver()
 
     if not valid_problem(W, H, rectangles):
         return []
 
     ordering_constraints(s, rectangles, px, py)
-    non_overlapping_constraints(s, rectangles, W, H, lr, ud, px, py, sb=True)
+    non_overlapping_constraints(s, rectangles, W, H, lr, ud, px, py, break_symmetries)
 
     s.set('timeout', 300 * 1000) ## seconds * milliseconds
 
@@ -277,7 +348,7 @@ def SAT_solve(W, H, rectangles):
     return decode_solver(s, rectangles, px, py)
 
 
-def bisection_solve(W, H_lb, H_ub, rectangles, verbose=True):
+def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries = True, verbose=True):
     """
     Find the optimal height of the strip packing problem using SAT order encoding.
     The optimization is done using the bisection method. The lower bound is tried first.
@@ -292,6 +363,8 @@ def bisection_solve(W, H_lb, H_ub, rectangles, verbose=True):
         upper bound for the height of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
+    break_symmetries : bool, default True
+        Toggle whether using symmetry breaking. For the explanation of the broken symmetries, see docs of SAT_solve.
     verbose : bool, default True
 
     Returns
@@ -313,7 +386,7 @@ def bisection_solve(W, H_lb, H_ub, rectangles, verbose=True):
         H = (H_lb + H_ub)//2
         if verbose: print(f"Trying H = {H}.")
 
-        positioned_rectangles = SAT_solve(W, H, rectangles)
+        positioned_rectangles = SAT_solve(W, H, rectangles, break_symmetries)
         if len(positioned_rectangles) > 0:
             positioned_rectangles_lastSAT = positioned_rectangles #save this configuration
             H_ub = H
@@ -333,7 +406,7 @@ def bisection_solve(W, H_lb, H_ub, rectangles, verbose=True):
     return H_lb, positioned_rectangles
 
 
-def SAT_optimize(W, rectangles, verbose=True):
+def SAT_optimize(W, rectangles, break_symmetries = True, verbose=True):
     """
     Find the optimal height of the strip packing problem using SAT order encoding.
     The bisection method is used to optimize the strip height.
@@ -349,6 +422,8 @@ def SAT_optimize(W, rectangles, verbose=True):
         total width of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
+    break_symmetries : bool, default True
+        Toggle whether using symmetry breaking. For the explanation of the broken symmetries, see docs of SAT_solve.
     verbose : bool, default True
 
     Returns
@@ -370,11 +445,11 @@ def SAT_optimize(W, rectangles, verbose=True):
         print(f"{H_lb} <= H <= {H_ub}.")
         print("\nTrying lower bound first.")
 
-    positioned_rectangles = SAT_solve(W, H_lb, rectangles)
+    positioned_rectangles = SAT_solve(W, H_lb, rectangles, break_symmetries)
     if len(positioned_rectangles) > 0:
         if verbose: print(f"Lower bound is SAT.\nOptimal value: H = {H_lb}.")
         return H_lb, positioned_rectangles
 
     if verbose:
         print("Lower bound is UNSAT.")
-    return bisection_solve(W, H_lb+1, H_ub, rectangles, verbose)
+    return bisection_solve(W, H_lb+1, H_ub, rectangles, break_symmetries, verbose)
