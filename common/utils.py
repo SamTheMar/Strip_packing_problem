@@ -156,7 +156,8 @@ def visualize(W, H, rectangles, ax = None, plot_width = -1):
                 r.h,  # height
                 facecolor = colors[idx%10],
                 edgecolor = 'k',
-                linewidth = linewidth
+                linewidth = linewidth,
+                alpha = 0.8
             )
         )
         ax.text(r.x + 0.25, r.y + 0.25, str(idx+1), fontsize = 'xx-large')
