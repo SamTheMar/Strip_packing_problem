@@ -213,7 +213,7 @@ def two_largest_index(rectangles):
 def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries = True, verbose=True):
     """
     Find the optimal height of the strip packing problem using SAT order encoding.
-    The optimization is done using the bisection method. The lower bound is tried first.
+    The optimization is done using the bisection method.
 
     Parameters
     ----------
