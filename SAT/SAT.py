@@ -223,38 +223,14 @@ def non_overlapping_3l_constraints(s, rectangles, W, H, lr, ud, px, py):
             add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
 
 
-#TODO: review symmetries, merge with non_overlapping_3l_constraints_SB
-def non_overlapping_4l_constraints_SB(s, rectangles, W, H, lr, ud):
-    m = np.argmax([r.w * r.h for r in rectangles]) #index of the largest rectangle
-
-    for i in range(len(rectangles)):
-        for j in range(i):
-            # LS: Reducing the domain for the largest rectangle
-            if j == m and rectangles[i].w > (W - rectangles[m].w)//2:
-                add_clause_4l(s, i, j, lr, ud, [False, True, True, True])
-            # SR: Breaking symmetries for same-sized rectangles
-            elif rectangles[i].w == rectangles[j].w and rectangles[i].h == rectangles[j].h:
-                add_clause_4l(s, i, j, lr, ud, [True, False, True, True])
-            # LR: Reducing the possibilities for placing large rectangles
-            elif rectangles[i].w + rectangles[j].w > W:
-                add_clause_4l(s, i, j, lr, ud, [False, False, True, True])
-            else:
-                to_add = []
-                if rectangles[i].w + rectangles[j].w <= W:
-                    to_add += [lr[i][j], lr[j][i]]
-                if rectangles[i].h + rectangles[j].h <= H:
-                    to_add += [ud[i][j], ud[j][i]]
-
-                s.add(Or(to_add))
-
-
-#TODO: review symmetries, merge with non_overlapping_4l_constraints_SB
-def non_overlapping_3l_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
+#TODO: review symmetries
+def non_overlapping_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
     n = len(rectangles)
     m = np.argmax([r.w * r.h for r in rectangles]) # index of rectangle with max area
 
     for i in range(n):
         for j in range(i):
+            # 3l initialization
             # rectangle j cannot be at the left of the right edge of rectangle i
             add_false_before(s, rectangles, 'x', i, j, lr, px)
             add_false_before(s, rectangles, 'x', j, i, lr, px)
@@ -265,12 +241,16 @@ def non_overlapping_3l_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
 
             # LS: Reducing the domain for the largest rectangle
             if j == m and rectangles[i].w > (W - rectangles[m].w)//2:
+                    add_clause_4l(s, i, j, lr, ud, [False, True, True, True])
+
                     add_clause_3l(s, rectangles, 'x', W, m, i, lr, px)
                     add_clause_3l(s, rectangles, 'y', H, i, m, ud, py)
                     add_clause_3l(s, rectangles, 'y', H, m, i, ud, py)
 
             # SR: Breaking symmetries for same-sized rectangles
             elif rectangles[i].w == rectangles[j].w and rectangles[i].h == rectangles[j].h:
+                add_clause_4l(s, i, j, lr, ud, [True, False, True, True])
+
                 add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
                 add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
                 add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
@@ -278,10 +258,20 @@ def non_overlapping_3l_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
 
             # LR: Reducing the possibilities for placing large rectangles
             elif rectangles[i].w + rectangles[j].w > W:
+                add_clause_4l(s, i, j, lr, ud, [False, False, True, True])
+
                 add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
                 add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
 
             else:
+                to_add_4l = []
+                if rectangles[i].w + rectangles[j].w <= W:
+                    to_add_4l += [lr[i][j], lr[j][i]]
+                if rectangles[i].h + rectangles[j].h <= H:
+                    to_add_4l += [ud[i][j], ud[j][i]]
+
+                s.add(Or(to_add_4l))
+
                 add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
                 add_clause_3l(s, rectangles, 'x', W, j, i, lr, px)
                 add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
@@ -291,8 +281,7 @@ def non_overlapping_3l_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
 def non_overlapping_constraints(s, rectangles, W, H, lr, ud, px, py, break_symmetries):
     print(f"non_overlapping_constraints: break_symmetries = {break_symmetries}")
     if break_symmetries:
-        non_overlapping_4l_constraints_SB(s, rectangles, W, H, lr, ud)
-        non_overlapping_3l_constraints_SB(s, rectangles, W, H, lr, ud, px, py)
+        non_overlapping_constraints_SB(s, rectangles, W, H, lr, ud, px, py)
     else:
         non_overlapping_4l_constraints(s, rectangles, W, H, lr, ud)
         non_overlapping_3l_constraints(s, rectangles, W, H, lr, ud, px, py)
