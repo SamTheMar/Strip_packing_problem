@@ -198,54 +198,22 @@ def non_overlapping_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
                 large_height = rectangles[i].h > (H - rectangles[m].h)//2
                 if large_width and large_height:
                     add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py, [False, True, False, True])
-                    # s.add(Or(lr[j][i], ud[j][i]))
-                    # # 3l constraints
-                    # add_clause_3l(s, rectangles, 'x', W, j, i, lr, px)
-
-                    # add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
                 elif large_width:
                     add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py, [False, True, True, True])
-                    # s.add(Or(lr[j][i], ud[i][j], ud[j][i]))
-                    # # 3l constraints
-                    # add_clause_3l(s, rectangles, 'x', W, j, i, lr, px)
-
-                    # add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
-                    # add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
                 elif large_height:
                     add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py, [True, True, False, True])
-                    # s.add(Or(lr[i][j], lr[j][i], ud[j][i]))
-                    # # 3l constraints
-                    # add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
-                    # add_clause_3l(s, rectangles, 'x', W, j, i, lr, px)
-
-                    # add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
                 else:
                    add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py)
             # SR: Breaking symmetries for same-sized rectangles
             elif rectangles[i].w == rectangles[j].w and rectangles[i].h == rectangles[j].h:
                 add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py, [True, False, True, True])
                 s.add(Or(Not(ud[i][j], lr[j][i])))
-                # s.add(Or(lr[i][j], ud[i][j], ud[j][i]))
-
-                # # 3l constraints
-                # add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
-
-                # add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
-                # add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
             # LR (horizontal)
             elif rectangles[i].w + rectangles[i].w > W:
                 add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py, [False, False, True, True])
-                # s.add(Or(ud[i][j], ud[j][i]))
-                # # 3l constraints
-                # add_clause_3l(s, rectangles, 'y', H, i, j, ud, py)
-                # add_clause_3l(s, rectangles, 'y', H, j, i, ud, py)
             # LR (vertical)
             elif rectangles[i].h + rectangles[i].h > H:
                 add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py, [True, True, False, False])
-                # s.add(Or(lr[i][j], lr[j][i]))
-                # # 3l constraints
-                # add_clause_3l(s, rectangles, 'x', W, i, j, lr, px)
-                # add_clause_3l(s, rectangles, 'x', W, j, i, lr, px)
             else:
                 add_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py)
 
