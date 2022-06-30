@@ -8,6 +8,7 @@ from collections import namedtuple
 PositionedRectangle = namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
 Rectangle = namedtuple('Rectangle', ['w', 'h'])
 
+
 def read_instance(filename):
     """
     Parameters
@@ -41,7 +42,7 @@ def read_instance(filename):
     rectangles = [Rectangle(cont[i, 0], cont[i, 1]) for i in range(len(cont))]
 
     return W, n, rectangles
-    
+
 
 def read_solution(filename):
     """
