@@ -21,8 +21,8 @@ array[0..w] of var set of 1..t: columns;
 
 constraint forall(v in 0..w)(columns[v]={i | i in 1..t where v in x[i]..x[i]+tDim[i,1]-1});
 
-solve satisfy;
-%solve minimize l;
+%solve satisfy;
+solve minimize l;
 
 output [show(w)++" "++show(l)++"\n"]++
        [show(t)++"\n"]++
