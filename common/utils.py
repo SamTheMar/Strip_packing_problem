@@ -155,8 +155,8 @@ def visualize(W, H, rectangles, ax = None, plot_width = -1):
     ax.set_xlim(0, W)
     ax.set_ylim(0, H)
 
-    ax.set_xticks(np.arange(W))
-    ax.set_yticks(np.arange(H))
+    ax.set_xticks(np.arange(W+1))
+    ax.set_yticks(np.arange(H+1))
 
     ax.set_aspect('equal', adjustable='box')
 
