@@ -8,6 +8,7 @@ from collections import namedtuple
 PositionedRectangle = namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
 Rectangle = namedtuple('Rectangle', ['w', 'h'])
 
+
 def read_instance(filename):
     """
     Parameters
@@ -41,7 +42,7 @@ def read_instance(filename):
     rectangles = [Rectangle(cont[i, 0], cont[i, 1]) for i in range(len(cont))]
 
     return W, n, rectangles
-    
+
 
 def read_solution(filename):
     """
@@ -155,8 +156,8 @@ def visualize(W, H, rectangles, ax = None, plot_width = -1):
     ax.set_xlim(0, W)
     ax.set_ylim(0, H)
 
-    ax.set_xticks(np.arange(W))
-    ax.set_yticks(np.arange(H))
+    ax.set_xticks(np.arange(W+1))
+    ax.set_yticks(np.arange(H+1))
 
     ax.set_aspect('equal', adjustable='box')
 
