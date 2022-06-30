@@ -166,7 +166,7 @@ def non_overlapping_constraints(s, rectangles, W, H, lr, ud, px, py):
         for i in range(j):
             add_normal_non_overlapping_constraint(s, rectangles, W, H, i, j, lr, ud, px, py)
 
-#TODO: review symmetries
+
 def non_overlapping_constraints_SB(s, rectangles, W, H, lr, ud, px, py):
     n = len(rectangles)
     m = np.argmax([r.w * r.h for r in rectangles]) # index of rectangle with max area
