@@ -2,7 +2,7 @@ import sys
 sys.path.append("./common")
 from utils import read_instance
 
-for i in range(37,41):
+for i in range(1,41):
 
     tDim = []
     
@@ -11,8 +11,8 @@ for i in range(37,41):
 
     with open("./CP/CP_instances/ins-%d.dzn"%i, "w") as f:
         s = "w = "+str(w)+";\n"
-        s = s + "t = "+str(t)+";\n"
-        s = s + "tDim = ["
+        s = s + "n = "+str(t)+";\n"
+        s = s + "dims = ["
         for i in range(t):
             s = s + "|"
             for j in range(len(tDim[i])):
