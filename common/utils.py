@@ -44,12 +44,12 @@ def read_instance(filename):
     return W, n, rectangles
 
 
-def read_solution(filename):
+def parse_solution(solution_string):
     """
     Parameters
     ----------
-    filename : string
-        file of the solution. Its format is:
+    solution_string : string
+        string of the solution. Its format is:
         total_width total_height
         n_rectangles
         w_1 h_1 x_1 y_1
@@ -66,10 +66,7 @@ def read_solution(filename):
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     """
-    with open(filename, "r") as f:
-        content = f.read()
-
-    lines = content.split("\n")
+    lines = solution_string.split("\n")
     W, H = (int(x) for x in lines[0].split(" "))
     n = int(lines[1].split(" ")[0])
 
@@ -78,6 +75,28 @@ def read_solution(filename):
     rectangles = [PositionedRectangle(cont[i, 2], cont[i, 3], cont[i, 0], cont[i, 1]) for i in range(len(cont))]
     
     return W, H, rectangles
+
+
+def read_solution(filename):
+    """
+    Parameters
+    ----------
+    filename : string
+        file of the solution. The file content must respect the format given by parse_solution.
+
+    Returns
+    -------
+    W : int
+        total width of the strip
+    H : int
+        total height of the strip
+    rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
+        A list of rectangles. This contains bottom left x and y coordinate and
+        the width and height of every rectangle.
+    """
+    with open(filename, "r") as f:
+        content = f.read()
+    return parse_solution(content)
 
 
 def save_solution(filename, W, H, rectangles):
@@ -202,6 +221,32 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
     return fig, ax
 
 
+def visualize_from_string(solution_string, **kwargs):
+    """
+    Visualization of the a strip of size width x height with the layout of the rectangles.
+    The rectangles are annotated with their place in the input list on the figure.
+
+    Parameters
+    ----------
+    solution_string : string
+        string of the solution. Its format is:
+        total_width total_height
+        n_rectangles
+        w_1 h_1 x_1 y_1
+        ......
+        w_n h_n x_n y_n
+    kwargs : dict
+        keyowrd arguments passed to ``visualize``
+
+    Returns
+    -------
+    ``matplotlib.figure.Figure``, ``matplotlib.axes._subplots.AxesSubplot``
+    """
+    W, H, rectangles = parse_solution(solution_string)
+    fig, ax = visualize(W, H, rectangles, **kwargs)
+    return fig, ax
+
+
 def visualize_from_file(filename, **kwargs):
     """
     Visualization of the a strip of size width x height with the layout of the rectangles.
@@ -209,12 +254,7 @@ def visualize_from_file(filename, **kwargs):
     Parameters
     ----------
     filename : string
-        file of the solution. Its format is:
-        total_width total_height
-        n_rectangles
-        w_1 h_1 x_1 y_1
-        ......
-        w_n h_n x_n y_n
+        file of the solution. The file content must respect the format given by parse_solution.
     kwargs : dict
         keyowrd arguments passed to ``visualize``
 
