@@ -74,8 +74,8 @@ class SAT_solver():
         for i in range(self.n):
             for e in range(self.W - self.rectangles[i].w, self.W):
                 self.s.add(self._px[i][e])
-            for e in range(self.H - self.rectangles[i].h, self.H):
-                self.s.add(self._py[i][e])
+            for f in range(self.H - self.rectangles[i].h, self.H):
+                self.s.add(self._py[i][f])
 
         if self.break_symmetries:
             m = np.argmax([r.w * r.h for r in self.rectangles])
