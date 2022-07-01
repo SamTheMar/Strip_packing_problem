@@ -201,13 +201,6 @@ class SAT_solver():
         return self.decode_solver()
 
 
-def two_largest_index(rectangles):
-    area = [r.w * r.h for r in rectangles]
-    sorted_area = sorted(area)
-    largest = sorted_area[-1]
-    second_largest = sorted_area[-2]
-    return area.index(largest), area.index(second_largest)
-
 
 def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries = True, verbose=True):
     """
