@@ -41,6 +41,14 @@ class SAT_solver_rotated(SAT_solver):
             print("The direction must be either 'x' or 'y'")
             return
 
+        # do not allow rotation if rectangle height (width) is larger than strip width (height)
+        if other_measure > strip_measure:
+            self.s.add(Not(self.R[index_1]))
+
+        # force rotation if rectangle width (height) is larger than strip width (height)
+        if rectangle_measure > strip_measure:
+            self.s.add(self.R[index_1])
+
         # if rectangle 1 is left of rectangle 2, rectangle 2 cannot be at the left of the right edge of rectangle 1.
         # no rotation
         for k in range(min(rectangle_measure, strip_measure)):
@@ -50,7 +58,7 @@ class SAT_solver_rotated(SAT_solver):
             k1 = k + rectangle_measure
             self.s.add(Implies(Not(self.R[index_1]),
                                 Or(Not(lrud[index_1][index_2]), pxy[index_1][k], Not(pxy[index_2][k1]))))
-
+        
         # rotation
         for k in range(min(other_measure, strip_measure)):
             self.s.add(Implies(self.R[index_1],
