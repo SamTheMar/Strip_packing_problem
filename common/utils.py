@@ -44,12 +44,12 @@ def read_instance(filename):
     return W, n, rectangles
 
 
-def read_solution(filename):
+def parse_solution(solution_string):
     """
     Parameters
     ----------
-    filename : string
-        file of the solution. Its format is:
+    solution_string : string
+        string of the solution. Its format is:
         total_width total_height
         n_rectangles
         w_1 h_1 x_1 y_1
@@ -66,10 +66,7 @@ def read_solution(filename):
         A list of rectangles. This contains bottom left x and y coordinate and
         the width and height of every rectangle.
     """
-    with open(filename, "r") as f:
-        content = f.read()
-
-    lines = content.split("\n")
+    lines = solution_string.split("\n")
     W, H = (int(x) for x in lines[0].split(" "))
     n = int(lines[1].split(" ")[0])
 
@@ -78,6 +75,28 @@ def read_solution(filename):
     rectangles = [PositionedRectangle(cont[i, 2], cont[i, 3], cont[i, 0], cont[i, 1]) for i in range(len(cont))]
     
     return W, H, rectangles
+
+
+def read_solution(filename):
+    """
+    Parameters
+    ----------
+    filename : string
+        file of the solution. The file content must respect the format given by parse_solution.
+
+    Returns
+    -------
+    W : int
+        total width of the strip
+    H : int
+        total height of the strip
+    rectangles : list of namedtuple('PositionedRectangle', ['x', 'y', 'w', 'h'])
+        A list of rectangles. This contains bottom left x and y coordinate and
+        the width and height of every rectangle.
+    """
+    with open(filename, "r") as f:
+        content = f.read()
+    return parse_solution(content)
 
 
 def save_solution(filename, W, H, rectangles):
@@ -102,7 +121,7 @@ def save_solution(filename, W, H, rectangles):
             f.write(f"{rect.w} {rect.h} {rect.x} {rect.y}\n")
 
 
-def visualize(W, H, rectangles, ax = None, plot_width = -1):
+def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidth = 3, show_grid = True, gridwidth = 0.5, gridstyle = '-', show_rectangle_numbering = True, show_info = True, additional_info = ""):
     """
     Visualization of the a strip of size width x height with the layout of the rectangles.
     The rectangles are annotated with their place in the input list on the figure.
@@ -119,19 +138,30 @@ def visualize(W, H, rectangles, ax = None, plot_width = -1):
     ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
         The axes on which to show the plot
     plot_width : int, default 720
-        Plot width in pixels.
+        Plot width in pixels. Used only if ax in not provided.
+    dpi : int, default 100
+        dpi of the plot figure. Used only if ax in not provided.
+    linewidth : float, default 3
+        linewidth of the rectangle borders.
+    show_grid : bool, default True
+    gridwidth : float, default 1
+        linewidth of the grid lines. Used only if show_grid is True.
+    gridstyle : string, default '-'
+    show_rectangle_numbering : bool, default True
+        toggle whether to show the number of the rectangle in the lower left corner.
+    show_info : bool, default True
+        toggle whether to show the width and height of the strip and the number of rectangles on the title.
+    additional_info : string, optinal
+        Additional information to display on the title.
+        Used ony if show_info is True.
 
     Returns
     -------
     ``matplotlib.figure.Figure``, ``matplotlib.axes._subplots.AxesSubplot``
     """
-    linewidth = 3
     if ax == None:
-        if plot_width == -1:
-            plot_width = 720
-
         aspect = H/W
-        fw, fh, dpi = plot_width, plot_width*aspect, 100
+        fw, fh = plot_width, plot_width*aspect
         fig, ax = plt.subplots(figsize = (fw/dpi, fh/dpi), dpi = dpi)
 
     else:
@@ -151,7 +181,19 @@ def visualize(W, H, rectangles, ax = None, plot_width = -1):
                 alpha = 0.8
             )
         )
-        ax.text(r.x + 0.25, r.y + 0.25, str(idx+1), fontsize = 'xx-large')
+        if show_rectangle_numbering:
+            if W < 15:
+                fontsize = 'xx-large'
+            elif  W < 20:
+                fontsize = 'x-large'
+            elif W < 27:
+                fontsize = 'large'
+            else:
+                fontsize = 'medium'
+
+            if not show_grid:
+                fontsize = 'xx-large'
+            ax.text(r.x + 0.25, r.y + 0.25, str(idx+1), fontsize = fontsize)
 
     ax.set_xlim(0, W)
     ax.set_ylim(0, H)
@@ -160,26 +202,34 @@ def visualize(W, H, rectangles, ax = None, plot_width = -1):
     ax.set_yticks(np.arange(H+1))
 
     ax.set_aspect('equal', adjustable='box')
+    
+    if show_grid:
+        ax.grid(color = 'k', ls = gridstyle, linewidth = gridwidth)
 
-    ax.grid(color = 'k', ls = '--')
     ax.set_facecolor('w')
 
     for b in ax.spines.values():
         b.set_linewidth(linewidth)
 
-    fig.tight_layout()
+    if show_info:
+        if additional_info != "":
+            additional_info += ", "
+        fig.suptitle(additional_info + f"{len(rectangles)} rectangles, W = {W}, H = {H}")
+
+    fig.tight_layout(pad = 1)
 
     return fig, ax
 
 
-def visualize_from_file(filename, **kwargs):
+def visualize_from_string(solution_string, **kwargs):
     """
     Visualization of the a strip of size width x height with the layout of the rectangles.
     The rectangles are annotated with their place in the input list on the figure.
+
     Parameters
     ----------
-    filename : string
-        file of the solution. Its format is:
+    solution_string : string
+        string of the solution. Its format is:
         total_width total_height
         n_rectangles
         w_1 h_1 x_1 y_1
@@ -192,5 +242,26 @@ def visualize_from_file(filename, **kwargs):
     -------
     ``matplotlib.figure.Figure``, ``matplotlib.axes._subplots.AxesSubplot``
     """
-    fig, ax = visualize(*read_solution(filename), **kwargs)
+    W, H, rectangles = parse_solution(solution_string)
+    fig, ax = visualize(W, H, rectangles, **kwargs)
+    return fig, ax
+
+
+def visualize_from_file(filename, **kwargs):
+    """
+    Visualization of the a strip of size width x height with the layout of the rectangles.
+    The rectangles are annotated with their place in the input list on the figure.
+    Parameters
+    ----------
+    filename : string
+        file of the solution. The file content must respect the format given by parse_solution.
+    kwargs : dict
+        keyowrd arguments passed to ``visualize``
+
+    Returns
+    -------
+    ``matplotlib.figure.Figure``, ``matplotlib.axes._subplots.AxesSubplot``
+    """
+    W, H, rectangles = read_solution(filename)
+    fig, ax = visualize(W, H, rectangles, **kwargs)
     return fig, ax
