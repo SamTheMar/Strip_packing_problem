@@ -5,7 +5,6 @@ import sys
 sys.path.append("../common")
 
 from utils import PositionedRectangle
-#from SAT_utils import order_decode
 
 
 class SAT_solver():
@@ -150,6 +149,7 @@ class SAT_solver():
                     self.add_non_overlapping_constraint(i, j, [True, True, False, False])
                 else:
                     self.add_non_overlapping_constraint(i, j)
+
 
     def order_decode(self, encoding, vmin=0):
         """

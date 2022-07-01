@@ -5,7 +5,6 @@ import sys
 sys.path.append("../common")
 
 from utils import PositionedRectangle, Rectangle
-#from SAT_utils import order_decode
 from SAT_solver import SAT_solver
 
 
