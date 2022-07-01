@@ -43,7 +43,7 @@ class SAT_solver_rotated(SAT_solver):
 
         # if rectangle 1 is left of rectangle 2, rectangle 2 cannot be at the left of the right edge of rectangle 1.
         # no rotation
-        for k in range(rectangle_measure):
+        for k in range(min(rectangle_measure, strip_measure)):
             self.s.add(Implies(Not(self.R[index_1]),
                                 Or(Not(lrud[index_1][index_2]), Not(pxy[index_2][k]))))
         for k in range(strip_measure - rectangle_measure):
@@ -52,7 +52,7 @@ class SAT_solver_rotated(SAT_solver):
                                 Or(Not(lrud[index_1][index_2]), pxy[index_1][k], Not(pxy[index_2][k1]))))
 
         # rotation
-        for k in range(other_measure):
+        for k in range(min(other_measure, strip_measure)):
             self.s.add(Implies(self.R[index_1],
                                 Or(Not(lrud[index_1][index_2]), Not(pxy[index_2][k]))))
         for k in range(strip_measure - other_measure):
