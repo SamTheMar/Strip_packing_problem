@@ -5,3 +5,4 @@ __pycache__
 SAT_solutions*
 .vscode
 SMT_LIB.smt2
+out*
