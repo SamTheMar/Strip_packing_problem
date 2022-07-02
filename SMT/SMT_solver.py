@@ -1,9 +1,9 @@
-from utils import PositionedRectangle
 import numpy as np
 from z3 import *
 
 import sys
 sys.path.append("../common")
+from utils import PositionedRectangle
 
 
 class SMT_solver():
