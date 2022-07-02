@@ -77,6 +77,12 @@ def parse_solution(solution_string):
     return W, H, rectangles
 
 
+def get_execution_time(filename):
+    with open(filename, "r") as f:
+        content = f.read()
+    return float(content.split("\n")[-1].split()[-1])
+
+
 def read_solution(filename):
     """
     Parameters
