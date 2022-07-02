@@ -2,7 +2,6 @@
 .~*
 __pycache__
 *.pyc
-SAT_solutions*
 .vscode
-SMT_LIB.smt2
+*.smt2
 out*
