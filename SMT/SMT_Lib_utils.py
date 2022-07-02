@@ -2,7 +2,7 @@ import numpy as np
 
 from SMT_Lib_solver import SMT_Lib_solver
 
-def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries=True, allow_rotation=False, verbose=True):
+def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation=False, verbose=True, *args, **kwargs):
     """
     Find the optimal height of the strip packing problem using SMT order encoding.
     The optimization is done using the bisection method.
@@ -17,11 +17,11 @@ def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries=True, allow_rota
         upper bound for the height of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
-    break_symmetries : bool, default True
-        Toggle whether using symmetry breaking. For the explanation of the broken symmetries, see docs of SAT_solve.
     allow_rotation : bool, default False
         Toggle whether to allow 90 degree rotation of the rectangles.
     verbose : bool, default True
+    *args, **kwargs
+        all additional arguments are passed to the solver
 
     Returns
     -------
@@ -47,9 +47,9 @@ def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries=True, allow_rota
 
         if allow_rotation:
             # TODO: use rotatio class
-            solver = SMT_Lib_solver(W, H, rectangles, break_symmetries)
+            solver = SMT_Lib_solver(W, H, rectangles, *args, **kwargs)
         else:
-            solver = SMT_Lib_solver(W, H, rectangles, break_symmetries)
+            solver = SMT_Lib_solver(W, H, rectangles, *args, **kwargs)
         positioned_rectangles = solver.solve()
 
         if len(positioned_rectangles) > 0:
@@ -71,7 +71,8 @@ def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries=True, allow_rota
     return H_lb, positioned_rectangles
 
 
-def SMT_optimize(W, rectangles, break_symmetries=True, allow_rotation=False, verbose=True):
+def SMT_optimize(W, rectangles, allow_rotation, verbose, *args, **kwargs):
+#def SMT_optimize(W, rectangles, break_symmetries=True, allow_rotation=False, verbose=True):
     """
     Find the optimal height of the strip packing problem using SMT order encoding.
     The bisection method is used to optimize the strip height.
@@ -87,11 +88,11 @@ def SMT_optimize(W, rectangles, break_symmetries=True, allow_rotation=False, ver
         total width of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
-    break_symmetries : bool, default True
-        Toggle whether using symmetry breaking. For the explanation of the broken symmetries, see docs of SAT_solve.
     allow_rotation : bool, default False
         Toggle whether to allow 90 degree rotation of the rectangles.
     verbose : bool, default True
+    *args, **kwargs
+        all additional arguments are passed to the solver
 
     Returns
     -------
@@ -116,11 +117,11 @@ def SMT_optimize(W, rectangles, break_symmetries=True, allow_rotation=False, ver
         if verbose:
             print("Rotation allowed.")
         # TODO: use rotatio class
-        solver = SMT_Lib_solver(W, H_lb, rectangles, break_symmetries)
+        solver = SMT_Lib_solver(W, H_lb, rectangles, *args, **kwargs)
     else:
         if verbose:
             print("Rotation not allowed.")
-        solver = SMT_Lib_solver(W, H_lb, rectangles, break_symmetries)
+        solver = SMT_Lib_solver(W, H_lb, rectangles, *args, **kwargs)
     positioned_rectangles = solver.solve()
     if len(positioned_rectangles) > 0:
         if verbose:
@@ -129,4 +130,4 @@ def SMT_optimize(W, rectangles, break_symmetries=True, allow_rotation=False, ver
 
     if verbose:
         print("Lower bound is UNSAT.")
-    return bisection_solve(W, H_lb+1, H_ub, rectangles, break_symmetries, verbose)
+    return bisection_solve(W, H_lb+1, H_ub, rectangles, verbose, *args, **kwargs)
