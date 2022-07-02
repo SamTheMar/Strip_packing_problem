@@ -1,9 +1,9 @@
+from utils import PositionedRectangle
 import numpy as np
 from z3 import *
 
 import sys
 sys.path.append("../common")
-from utils import PositionedRectangle
 
 
 class SMT_solver():
@@ -26,6 +26,15 @@ class SMT_solver():
         self.H = Int('H')
 
 
+    def domain(self):
+        self.s.add([self._px[i] >= 0 for i in range(self.n)])
+        self.s.add([self._py[i] >= 0 for i in range(self.n)])
+        self.s.add([self._px[i] + self.rect_w[i] <=
+                    self.W for i in range(self.n)])
+        self.s.add([self._py[i] + self.rect_h[i] <=
+                    self.H for i in range(self.n)])
+
+
     def add_constraints(self):
         for j in range(self.n):
             for i in range(j):
@@ -33,11 +42,6 @@ class SMT_solver():
                               self._px[j] + self.rect_w[j] <= self._px[i],
                               self._py[i] + self.rect_h[i] <= self._py[j],
                               self._py[j] + self.rect_h[j] <= self._py[i]))
-
-        self.s.add([self._px[i] >= 0 for i in range(self.n)])
-        self.s.add([self._py[i] >= 0 for i in range(self.n)])
-        self.s.add([self._px[i] + self.rect_w[i] <= self.W for i in range(self.n)])
-        self.s.add([self._py[i] + self.rect_h[i] <= self.H for i in range(self.n)])
 
 
     def decode_solver(self):
@@ -52,8 +56,10 @@ class SMT_solver():
         """
         m = self.s.model()
 
-        x_values = [m.evaluate(self._px[i], model_completion=True) for i in range(len(self._px))]
-        y_values = [m.evaluate(self._py[i], model_completion=True) for i in range(len(self._py))]
+        x_values = [m.evaluate(self._px[i], model_completion=True)
+                    for i in range(len(self._px))]
+        y_values = [m.evaluate(self._py[i], model_completion=True)
+                    for i in range(len(self._py))]
 
         return [PositionedRectangle(x.as_long(), y.as_long(), rect.w, rect.h) for x, y, rect in zip(x_values, y_values, self.rectangles)]
 
@@ -75,8 +81,9 @@ class SMT_solver():
         """
         self.order_encode_variables()
 
+        self.domain()
         self.add_constraints()
-        
+
         z = self.s.minimize(self.H)
 
         if self.s.check() == unsat or type(z.value()) == z3.z3.ArithRef:
