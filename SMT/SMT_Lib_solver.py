@@ -23,15 +23,15 @@ class SMT_Lib_solver():
     def set_solver(self, solver):
         if solver == 'z3':
             self.solver = solver
-        if solver == 'cvc5':
+        elif solver == 'cvc5':
             self.solver = solver + ' --produce-models'
         else:
-            print("Unknown solver, using default z3")
+            print(f"\nWARNING! Unknown solver {solver}, using default z3\n")
             self.solver = 'z3'
+
 
     def write_logic(self):
         self.lines.append(f"(set-logic {self.logic.upper()})")
-
 
 
     def decisional_variables(self):
@@ -140,6 +140,6 @@ class SMT_Lib_solver():
 
     def solve(self):
         self.create_SMT_file()
-        result = subprocess.run([self.solver, self.filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(self.solver.split() + [self.filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output_string = str(result.stdout, encoding="ASCII")
         return self.parse_solution(output_string)
