@@ -6,9 +6,8 @@ int: n;
 set of int: circuits = 1..n;
 array[circuits,1..2] of int: dims;
 
-
-int: search_heuristic; % 1 dom_deg, 2 impact, 3 indomain_order
-int: restart_strategy; % 1 luby 150, geometric 2 50, 3 niente
+int: search_heuristic = 3; % 1 dom_deg, 2 impact, 3 indomain_order
+int: restart_strategy = 1; % 1 luby 150, 2 geometric 2 50, 3 niente
 
 array[circuits] of int: ordering = arg_sort([dims[i,1]*dims[i,2]|i in circuits]);
 array[circuits,1..2] of int: odims = array2d(circuits,1..2,[dims[ordering[n+1-i],j]|i in circuits, j in 1..2]);
@@ -36,12 +35,26 @@ constraint forall (i in circuits) (y[i] + odims[i, 2] <= l);
 constraint cumulative(x, [odims[i, 1]| i in circuits], [odims[i, 2]| i in circuits], l) :: domain;
 constraint cumulative(y, [odims[i, 2]| i in circuits], [odims[i, 1]| i in circuits], w) :: domain;
 
+% circuits which can't stay one of the side of the other are up or down
+constraint forall(i,j in circuits where j>i)(
+if odims[i,1]+odims[j,1]>w then y[i]<y[j] -> y[i]+dims[i,2]<=y[j] /\ y[j]<y[i]-> y[j]+dims[j,2]<=y[i] endif);
+
 % rows and columns symmetry
 constraint symmetry_breaking_constraint(
     forall (i,j in circuits where i < j) ((x[i] == x[j] /\ odims[i, 1] == odims[j, 1]) -> y[i] <= y[j] - odims[i,2]));
 constraint symmetry_breaking_constraint(
     forall (i,j in circuits where i < j) ((y[i] == y[j] /\ odims[i, 2] == odims[j, 2]) -> x[i] <= x[j] - odims[i,1]));
-    
+
+% circuits of the same dimensions
+/*   
+constraint symmetry_breaking_constraint(
+forall(i,j in circuits where j>i)(if odims[i,1]==odims[j,1] /\ odims[i,2]==odims[j,2] then x[i]<=x[j] /\ y[i]<=y[j] endif));
+*/
+
+% break symmetries for the biggest circuit
+constraint symmetry_breaking_constraint(
+x[1]<=(w-odims[1,1]) div 2 /\ y[1] <= (l-odims[1,2]) div 2);
+       
 % three blocks symmetry
 %??????????????????????????????????????????????????????????????????????????????????????????????' see others solution
 constraint symmetry_breaking_constraint(
