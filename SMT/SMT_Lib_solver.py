@@ -15,13 +15,23 @@ class SMT_Lib_solver():
         self.n = len(rectangles)
         self.break_symmetries = break_symmetries
         self.logic = logic
-        self.solver = solver
+        self.set_solver(solver)
         self.filename = "SMT_LIB.smt2"
         self.lines = []
 
 
-    def set_logic(self, logic):
-        self.lines.append(f"(set-logic {logic})")
+    def set_solver(self, solver):
+        if solver == 'z3':
+            self.solver = solver
+        if solver == 'cvc5':
+            self.solver = solver + ' --produce-models'
+        else:
+            print("Unknown solver, using default z3")
+            self.solver = 'z3'
+
+    def write_logic(self):
+        self.lines.append(f"(set-logic {self.logic.upper()})")
+
 
 
     def decisional_variables(self):
@@ -103,7 +113,7 @@ class SMT_Lib_solver():
 
 
     def create_SMT_file(self):
-        self.set_logic(self.logic.upper())
+        self.write_logic()
         self.decisional_variables()
         self.domain()
         if self.break_symmetries:
