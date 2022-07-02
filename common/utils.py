@@ -160,7 +160,10 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
     ``matplotlib.figure.Figure``, ``matplotlib.axes._subplots.AxesSubplot``
     """
     if ax == None:
-        aspect = H/W
+        if W == 0 or H == 0:
+            aspect = 1
+        else:
+            aspect = H/W
         fw, fh = plot_width, plot_width*aspect
         fig, ax = plt.subplots(figsize = (fw/dpi, fh/dpi), dpi = dpi)
 
