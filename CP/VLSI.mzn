@@ -6,6 +6,10 @@ int: n;
 set of int: circuits = 1..n;
 array[circuits,1..2] of int: dims;
 
+
+int: search_heuristic; % 1 dom_deg, 2 impact, 3 indomain_order
+int: restart_strategy; % 1 luby 150, geometric 2 50, 3 niente
+
 array[circuits] of int: ordering = arg_sort([dims[i,1]*dims[i,2]|i in circuits]);
 array[circuits,1..2] of int: odims = array2d(circuits,1..2,[dims[ordering[n+1-i],j]|i in circuits, j in 1..2]);
 
@@ -48,11 +52,7 @@ constraint symmetry_breaking_constraint(
         ((y[i] == y[j] /\ odims[i, 2] == odims[j, 2] /\ x[i] == x[k] /\ odims[i, 1] + odims[j, 1] == odims[k, 1]) -> y[k] <= y[i] ));
         
 % biggest circuit bottom left to second biggest circuit
-constraint x[bc] <= x[sbc] /\ y[bc] <= y[sbc];
-
-
-int: search_heuristic=3;
-int: restart_strategy=3;
+constraint x[1] <= x[2] /\ y[1] <= y[2];
 
 ann: search_ann_x =
 if search_heuristic == 1 then
