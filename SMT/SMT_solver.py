@@ -25,9 +25,6 @@ class SMT_solver():
 
         self.H = Int('H')
 
-        self._lr = [[Bool(f"lr_{i+1}_{j+1}") for j in range(self.n)] for i in range(self.n)]
-        self._ud = [[Bool(f"ud_{i+1}_{j+1}") for j in range(self.n)] for i in range(self.n)]
-
 
     def add_constraints(self):
         for j in range(self.n):
@@ -40,8 +37,8 @@ class SMT_solver():
         self.s.add([self._px[i] >= 0 for i in range(self.n)])
         self.s.add([self._py[i] >= 0 for i in range(self.n)])
         self.s.add([self._px[i] + self.rect_w[i] <= self.W for i in range(self.n)])
-        self.s.add([self._py[i] + self.rect_h[i] <= self.H  for i in range(self.n)])
-    
+        self.s.add([self._py[i] + self.rect_h[i] <= self.H for i in range(self.n)])
+
 
     def decode_solver(self):
         """
@@ -86,4 +83,3 @@ class SMT_solver():
             return 0, []
 
         return z.value().as_long(), self.decode_solver()
-        #return z, self.decode_solver()
