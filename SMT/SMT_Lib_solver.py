@@ -128,9 +128,13 @@ class SMT_Lib_solver():
 
 
     def parse_solution(self, output_string):
+        if "cvc5" in self.solver:
+            output_string = output_string.replace(") (", "\n")
+
         output_list = output_string.split("\n")
         if "unsat" in output_list[0]:
             return []
+        
         pos_xy = [int(s.split()[-1].split(")")[0]) for s in output_list[1:-1]]
         x_values = pos_xy[:len(pos_xy)//2]
         y_values = pos_xy[len(pos_xy)//2:]
