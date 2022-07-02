@@ -5,7 +5,7 @@ int: w;
 int: n;
 set of int: circuits = 1..n;
 array[circuits,1..2] of int: dims;
-array[circuits,1..2] of var int: rdims;
+array[circuits,1..2] of var 1..min(w, maxH): rdims;
 array [circuits] of var bool : rot ;
 
 int: search_heuristic=1;
@@ -32,30 +32,30 @@ circuits: sbc = 2;
 array [circuits] of var 0..w-min([dims[i, 1]| i in circuits]): x;
 array [circuits] of var 0..maxH-min([dims[i, 2]| i in circuits]): y;
 
-var minH..maxH: l = max(i in circuits)(y[i] + odims[i,2]);
+var minH..maxH: l = max(i in circuits)(y[i] + rdims[i,2]);
 
 %overlap constrains
-constraint diffn(x, y, [odims[i, 1]|i in circuits], [odims[i, 2]| i in circuits]) :: domain;
-constraint forall (i in circuits) (x[i] + odims[i, 1] <= w);
-constraint forall (i in circuits) (y[i] + odims[i, 2] <= l);
+constraint diffn(x, y, [rdims[i, 1]|i in circuits], [rdims[i, 2]| i in circuits]) :: domain;
+constraint forall (i in circuits) (x[i] + rdims[i, 1] <= w);
+constraint forall (i in circuits) (y[i] + rdims[i, 2] <= l);
 
 % implied constraints
-%constraint cumulative(x, [odims[i, 1]| i in circuits], [odims[i, 2]| i in circuits], l) :: domain;
-%constraint cumulative(y, [odims[i, 2]| i in circuits], [odims[i, 1]| i in circuits], w) :: domain;
+constraint cumulative(x, [rdims[i, 1]| i in circuits], [rdims[i, 2]| i in circuits], l) :: domain;
+constraint cumulative(y, [rdims[i, 2]| i in circuits], [rdims[i, 1]| i in circuits], w) :: domain;
 
 % rows and columns symmetry
 constraint symmetry_breaking_constraint(
-    forall (i,j in circuits where i < j) ((x[i] == x[j] /\ odims[i, 1] == odims[j, 1]) -> y[i] <= y[j] - odims[i,2]));
+    forall (i,j in circuits where i < j) ((x[i] == x[j] /\ rdims[i, 1] == rdims[j, 1]) -> y[i] <= y[j] - rdims[i,2]));
 constraint symmetry_breaking_constraint(
-    forall (i,j in circuits where i < j) ((y[i] == y[j] /\ odims[i, 2] == odims[j, 2]) -> x[i] <= x[j] - odims[i,1]));
+    forall (i,j in circuits where i < j) ((y[i] == y[j] /\ rdims[i, 2] == rdims[j, 2]) -> x[i] <= x[j] - rdims[i,1]));
     
 % three blocks symmetry
 constraint symmetry_breaking_constraint(
     forall (i,j,k in circuits where i > j /\ j > k)
-        ((x[i] == x[j] /\ odims[i, 1] == odims[j, 1] /\ y[i] == y[k] /\ odims[i, 2] + odims[j, 2] == odims[k, 2]) -> x[k] <= x[i] ));
+        ((x[i] == x[j] /\ rdims[i, 1] == rdims[j, 1] /\ y[i] == y[k] /\ rdims[i, 2] + rdims[j, 2] == rdims[k, 2]) -> x[k] <= x[i] ));
 constraint symmetry_breaking_constraint(
     forall (i,j,k in circuits where i > j /\ j > k)
-        ((y[i] == y[j] /\ odims[i, 2] == odims[j, 2] /\ x[i] == x[k] /\ odims[i, 1] + odims[j, 1] == odims[k, 1]) -> y[k] <= y[i] ));
+        ((y[i] == y[j] /\ rdims[i, 2] == rdims[j, 2] /\ x[i] == x[k] /\ rdims[i, 1] + rdims[j, 1] == rdims[k, 1]) -> y[k] <= y[i] ));
         
 % biggest circuit bottom left to second biggest circuit
 constraint x[bc] <= x[sbc] /\ y[bc] <= y[sbc];
@@ -96,4 +96,4 @@ solve :: search_ann_x
 
 output [show(w)++" "++show(l)++"\n"]++
        [show(n)++"\n"]++
-       [show(odims[i,1])++" "++show(odims[i,2])++" "++show(x[i])++" "++show(y[i])++"\n"|i in circuits];
+       [show(rdims[i,1])++" "++show(rdims[i,2])++" "++show(x[i])++" "++show(y[i])++"\n"|i in circuits];
