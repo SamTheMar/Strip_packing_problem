@@ -14,10 +14,10 @@ class SMT_Lib_solver():
         self.rectangles = rectangles
         self.n = len(rectangles)
         self.break_symmetries = break_symmetries
-        self.lines = []
+        self.logic = logic
         self.solver = solver
         self.filename = "SMT_LIB.smt2"
-        self.set_logic(logic.upper())
+        self.lines = []
 
 
     def set_logic(self, logic):
@@ -88,6 +88,7 @@ class SMT_Lib_solver():
 
 
     def create_SMT_file(self):
+        self.set_logic(self.logic.upper())
         self.decisional_variables()
         self.domain()
         self.non_overlapping_constraints()
