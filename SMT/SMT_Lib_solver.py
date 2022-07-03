@@ -46,13 +46,13 @@ class SMT_Lib_solver():
 
         if self.break_symmetries:
             m = np.argmax([r.w * r.h for r in self.rectangles])
-            self.lines += [f"(assert (<= posY{i} {self.H - self.rectangles[i].h}))" for i in range(self.n) if i != m]
             self.lines += [f"(assert (<= posX{i} {self.W - self.rectangles[i].w}))" for i in range(self.n) if i != m]
+            self.lines += [f"(assert (<= posY{i} {self.H - self.rectangles[i].h}))" for i in range(self.n) if i != m]
             self.lines.append(f"(assert (<= posX{m} {(self.W - self.rectangles[m].w)//2}))")
             self.lines.append(f"(assert (<= posY{m} {(self.H - self.rectangles[m].h)//2}))")
         else:
-            self.lines += [f"(assert (<= posY{i} {self.H - self.rectangles[i].h}))" for i in range(self.n)]
             self.lines += [f"(assert (<= posX{i} {self.W - self.rectangles[i].w}))" for i in range(self.n)]
+            self.lines += [f"(assert (<= posY{i} {self.H - self.rectangles[i].h}))" for i in range(self.n)]
 
 
     def add_non_overlapping_constraint(self, i, j, to_add = [True, True, True, True]):
