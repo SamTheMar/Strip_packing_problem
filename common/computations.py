@@ -102,7 +102,7 @@ def compute_all_instances(mode = "SAT",
             if plot:
                 plt.show()
             else:
-                plt.clf()
+                plt.close(fig)
 
         except TimeoutExpired:
             print("\n----Timeout----\n")
