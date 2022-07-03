@@ -94,7 +94,7 @@ def compute_all_instances(mode = "SAT",
             fig.tight_layout(pad=1)
 
             if save_to_file:
-                plt.savefig(plot_folder + ins_filename.split('/')[-1].split('.')[0] + plot_output_format)
+                plt.savefig(plot_folder + ins_filename.split('/')[-1].split('.')[0] + "." + plot_output_format.split('.')[-1])
                 save_solution(solution_filename, W, H, positioned_rectangles)
                 with open(solution_filename, "a") as f:
                     f.write(f"\nexecution time in seconds: {execution_time:.3f}")
