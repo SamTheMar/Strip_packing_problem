@@ -1,5 +1,4 @@
-from utils import PositionedRectangle
-import subprocess
+from utils import PositionedRectangle, Rectangle
 import numpy as np
 from SMT_Lib_solver import SMT_Lib_solver
 
@@ -7,7 +6,7 @@ import sys
 sys.path.append("../common")
 
 
-class SMT_Lib_solver_rotation(SMT_Lib_solver):
+class SMT_Lib_solver_rotated(SMT_Lib_solver):
     def __init__(self, W, H, rectangles, break_symmetries=False, timeout=300, logic="LIA", solver="z3"):
         super().__init__(W, H, rectangles, break_symmetries, timeout, logic, solver)
 
@@ -43,6 +42,7 @@ class SMT_Lib_solver_rotation(SMT_Lib_solver):
             self.lines += [f"(assert (or (not R{i}) (<= posY{i} {self.H - self.rectangles[i].w})))" for i in range(self.n)]
             self.lines += [f"(assert (or (not R{i}) (<= posX{i} {self.W - self.rectangles[i].h})))" for i in range(self.n)]
 
+
     def add_non_overlapping_constraint(self, i, j, to_add=[True, True, True, True]):
         string = ""
         string_rotated = ""
@@ -64,8 +64,31 @@ class SMT_Lib_solver_rotation(SMT_Lib_solver):
         constraint_rotated = " ".join(string_rotated.split())
         self.lines += [f"(assert (or {constraint}))"]
         self.lines += [f"(assert (or {constraint_rotated}))"]
-    
+
 
     def check(self):
         super().check()
         self.lines.append(f"(get-value ({' '.join([f'R{i}' for i in range(self.n)])}))")
+
+    def parse_solution(self, output_string):
+        if "cvc5" in self.solver:
+            output_string = output_string.replace(") (", "\n")
+
+        output_list = output_string.split("\n")
+        if "unsat" in output_list[0]:
+            return []
+
+        pos_xy = [s.split()[-1].split(")")[0] for s in output_list[1:-1]]
+        x_values = [int(a) for a in pos_xy[:len(pos_xy)//3]]
+        y_values = [int(a) for a in pos_xy[len(pos_xy)//3:2*len(pos_xy)//3]]
+        R_values = [a.lower()=='true' for a in pos_xy[2*len(pos_xy)//3:]]
+
+        true_rectangles = []
+        for rect, rot in zip(self.rectangles, R_values):
+            if rot:
+                true_rectangles.append(Rectangle(rect.h, rect.w))
+            else:
+                true_rectangles.append(rect)
+
+
+        return [PositionedRectangle(x, y, rect.w, rect.h) for x, y, rect in zip(x_values, y_values, true_rectangles)]
