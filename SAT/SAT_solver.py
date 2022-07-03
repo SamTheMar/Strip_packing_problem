@@ -8,14 +8,15 @@ from utils import PositionedRectangle
 
 
 class SAT_solver():
-    def __init__(self, W, H, rectangles, break_symmetries = False, timeout_seconds = 300):
+    def __init__(self, W, H, rectangles, break_symmetries = False, timeout = 300):
         self.W = W
         self.H = H
         self.rectangles = rectangles
         self.n = len(rectangles)
+        print("Timeout", timeout)
         self.break_symmetries = break_symmetries
         self.s = Solver()
-        self.s.set('timeout', timeout_seconds * 1000) ## seconds * milliseconds
+        self.s.set('timeout', timeout * 1000) ## seconds * milliseconds
 
 
     def order_encode_variables(self):

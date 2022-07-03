@@ -9,8 +9,10 @@ from SAT_solver import SAT_solver
 
 
 class SAT_solver_rotated(SAT_solver):
-    def __init__(self, W, H, rectangles, break_symmetries = False, timeout_seconds = 300):
-        super().__init__(W, H, rectangles, break_symmetries = break_symmetries, timeout_seconds = timeout_seconds)
+    # def __init__(self, W, H, rectangles, break_symmetries = False, timeout = 300):
+    #     super().__init__(W, H, rectangles, break_symmetries = break_symmetries, timeout = timeout)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
     def order_encode_variables(self):

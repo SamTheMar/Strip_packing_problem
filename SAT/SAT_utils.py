@@ -3,7 +3,8 @@ import numpy as np
 from SAT_solver import SAT_solver
 from SAT_solver_rotated import SAT_solver_rotated
 
-def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries = True, allow_rotation = False, verbose=True):
+
+def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation = False, verbose=True, *args, **kwargs):
     """
     Find the optimal height of the strip packing problem using SAT order encoding.
     The optimization is done using the bisection method.
@@ -18,11 +19,11 @@ def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries = True, allow_ro
         upper bound for the height of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
-    break_symmetries : bool, default True
-        Toggle whether using symmetry breaking. For the explanation of the broken symmetries, see docs of SAT_solve.
     allow_rotation : bool, default False
         Toggle whether to allow 90 degree rotation of the rectangles.
     verbose : bool, default True
+    *args, **kwargs
+        all additional arguments are passed to the solver
 
     Returns
     -------
@@ -44,9 +45,9 @@ def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries = True, allow_ro
         if verbose: print(f"Trying H = {H}.")
 
         if allow_rotation:
-            solver = SAT_solver_rotated(W, H, rectangles, break_symmetries)
+            solver = SAT_solver_rotated(W, H, rectangles, *args, **kwargs)
         else:
-            solver = SAT_solver(W, H, rectangles, break_symmetries)
+            solver = SAT_solver(W, H, rectangles, *args, **kwargs)
         positioned_rectangles = solver.solve()
 
         if len(positioned_rectangles) > 0:
@@ -68,7 +69,7 @@ def bisection_solve(W, H_lb, H_ub, rectangles, break_symmetries = True, allow_ro
     return H_lb, positioned_rectangles
 
 
-def SAT_optimize(W, rectangles, break_symmetries = True, allow_rotation = False, verbose=True):
+def SAT_optimize(W, rectangles, allow_rotation = False, verbose=True, *args, **kwargs):
     """
     Find the optimal height of the strip packing problem using SAT order encoding.
     The bisection method is used to optimize the strip height.
@@ -84,11 +85,11 @@ def SAT_optimize(W, rectangles, break_symmetries = True, allow_rotation = False,
         total width of the strip
     rectangles : list of namedtuple('Rectangle', ['w', 'h'])
         A list of rectangles. This contains the width and height of every rectangle.
-    break_symmetries : bool, default True
-        Toggle whether using symmetry breaking. For the explanation of the broken symmetries, see docs of SAT_solve.
     allow_rotation : bool, default False
         Toggle whether to allow 90 degree rotation of the rectangles.
     verbose : bool, default True
+    *args, **kwargs
+        all additional arguments are passed to the solver.
 
     Returns
     -------
@@ -112,11 +113,11 @@ def SAT_optimize(W, rectangles, break_symmetries = True, allow_rotation = False,
     if allow_rotation:
         if verbose:
             print("Rotation allowed.")
-        solver = SAT_solver_rotated(W, H_lb, rectangles, break_symmetries)
+        solver = SAT_solver_rotated(W, H_lb, rectangles, *args, **kwargs)
     else:
         if verbose:
             print("Rotation not allowed.")
-        solver = SAT_solver(W, H_lb, rectangles, break_symmetries)
+        solver = SAT_solver(W, H_lb, rectangles, *args, **kwargs)
     positioned_rectangles = solver.solve()
 
     if len(positioned_rectangles) > 0:
@@ -125,7 +126,7 @@ def SAT_optimize(W, rectangles, break_symmetries = True, allow_rotation = False,
 
     if verbose:
         print("Lower bound is UNSAT.")
-    return bisection_solve(W, H_lb+1, H_ub, rectangles, break_symmetries, verbose)
+    return bisection_solve(W, H_lb+1, H_ub, rectangles, allow_rotation, verbose *args, **kwargs)
 
 
 def order_encode(value, vmin=0, vmax=-1):
@@ -158,5 +159,3 @@ def order_encode(value, vmin=0, vmax=-1):
     for i in range(vmin, vmax):
         encoding.append(value <= i)
     return encoding
-
-
