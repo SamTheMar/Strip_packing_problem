@@ -8,12 +8,13 @@ from utils import PositionedRectangle
 
 
 class SMT_Lib_solver():
-    def __init__(self, W, H, rectangles, break_symmetries=False, logic="LIA", solver="z3"):
+    def __init__(self, W, H, rectangles, break_symmetries=False, timeout=300, logic="LIA", solver="z3"):
         self.W = W
         self.H = H
         self.rectangles = rectangles
         self.n = len(rectangles)
         self.break_symmetries = break_symmetries
+        self.timeout = timeout
         self.logic = logic
         self.set_solver(solver)
         self.filename = "SMT_LIB.smt2"
@@ -144,6 +145,9 @@ class SMT_Lib_solver():
 
     def solve(self):
         self.create_SMT_file()
-        result = subprocess.run(self.solver.split() + [self.filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output_string = str(result.stdout, encoding="ASCII")
+        process = subprocess.run(self.solver.split() + [self.filename], 
+                                stdout=subprocess.PIPE, 
+                                stderr=subprocess.PIPE, 
+                                timeout=self.timeout)
+        output_string = str(process.stdout, encoding="ASCII")
         return self.parse_solution(output_string)
