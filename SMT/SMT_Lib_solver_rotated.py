@@ -21,28 +21,25 @@ class SMT_Lib_solver_rotated(SMT_Lib_solver):
 
 
     def domain(self):
-        self.lines += [f"(assert (>= posX{i} 0))" for i in range(self.n)]
-        self.lines += [f"(assert (>= posY{i} 0))" for i in range(self.n)]
-
-        if self.break_symmetries:
-            m = np.argmax([r.w * r.h for r in self.rectangles])
-            # no rotation
-            self.lines += [f"(assert (=> (not R{i}) (<= posX{i} {self.W - self.rectangles[i].w})))" for i in range(self.n) if i != m]
-            self.lines += [f"(assert (=> (not R{i}) (<= posY{i} {self.H - self.rectangles[i].h})))" for i in range(self.n) if i != m]
-            self.lines.append(f"(assert (=> (not R{m}) (<= posX{m} {(self.W - self.rectangles[m].w)//2})))")
-            self.lines.append(f"(assert (=> (not R{m}) (<= posY{m} {(self.H - self.rectangles[m].h)//2})))")
-            # rotation
-            self.lines += [f"(assert (=> R{i} (<= posX{i} {self.W - self.rectangles[i].h})))" for i in range(self.n) if i != m]
-            self.lines += [f"(assert (=> R{i} (<= posY{i} {self.H - self.rectangles[i].w})))" for i in range(self.n) if i != m]
-            self.lines.append(f"(assert (=> R{m} (<= posX{m} {(self.W - self.rectangles[m].h)//2})))")
-            self.lines.append(f"(assert (=> R{m} (<= posY{m} {(self.H - self.rectangles[m].w)//2})))")
-        else:
-            # no rotation
-            self.lines += [f"(assert (=> (not R{i}) (<= posX{i} {self.W - self.rectangles[i].w})))" for i in range(self.n)]
-            self.lines += [f"(assert (=> (not R{i}) (<= posY{i} {self.H - self.rectangles[i].h})))" for i in range(self.n)]
-            # rotation
-            self.lines += [f"(assert (=> R{i} (<= posX{i} {self.W - self.rectangles[i].h})))" for i in range(self.n)]
-            self.lines += [f"(assert (=> R{i} (<= posY{i} {self.H - self.rectangles[i].w})))" for i in range(self.n)]
+        m = np.argmax([r.w * r.h for r in self.rectangles])
+        for i in range(self.n):
+            xm = self.W - self.rectangles[i].w
+            xmr = self.W - self.rectangles[i].h
+            if i==m and self.break_symmetries:
+                xm = xm//2
+                xmr = xmr//2
+            self.lines.append(f"(assert (>= posX{i} 0))")
+            self.lines.append(f"(assert (=> (not R{i}) (<= posX{i} {xm})))")
+            self.lines.append(f"(assert (=> R{i} (<= posX{i} {xmr})))")
+        for i in range(self.n):
+            ym = self.H - self.rectangles[i].h
+            ymr = self.H - self.rectangles[i].w
+            if i==m and self.break_symmetries:
+                ym = ym//2
+                ymr = ymr//2
+            self.lines.append(f"(assert (>= posY{i} 0))")
+            self.lines.append(f"(assert (=> (not R{i}) (<= posY{i} {ym})))")
+            self.lines.append(f"(assert (=> R{i} (<= posY{i} {ymr})))")
 
 
     def rotation_constraints(self):
