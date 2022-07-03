@@ -274,3 +274,12 @@ def visualize_from_file(filename, **kwargs):
     W, H, rectangles = read_solution(filename)
     fig, ax = visualize(W, H, rectangles, **kwargs)
     return fig, ax
+
+
+def sort_by_area(rectangles, reverse = True):
+    """
+    sorts rectangles by area in decreasing order. If reverse is False, the sorting is in increasing order.
+    """
+    areas = [r.w * r.h for r in rectangles]
+    _, sorted_rectangles = zip(*sorted(zip(areas, rectangles), reverse = reverse))
+    return list(sorted_rectangles)
