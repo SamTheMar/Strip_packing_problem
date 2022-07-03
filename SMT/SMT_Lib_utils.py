@@ -3,6 +3,7 @@ import numpy as np
 from SMT_Lib_solver_rotated import SMT_Lib_solver_rotated
 from SMT_Lib_solver import SMT_Lib_solver
 
+
 def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation=False, verbose=True, *args, **kwargs):
     """
     Find the optimal height of the strip packing problem using SMT order encoding.
@@ -72,7 +73,6 @@ def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation=False, verbose=Tru
 
 
 def SMT_optimize(W, rectangles, allow_rotation, verbose, *args, **kwargs):
-#def SMT_optimize(W, rectangles, break_symmetries=True, allow_rotation=False, verbose=True):
     """
     Find the optimal height of the strip packing problem using SMT order encoding.
     The bisection method is used to optimize the strip height.
@@ -92,7 +92,7 @@ def SMT_optimize(W, rectangles, allow_rotation, verbose, *args, **kwargs):
         Toggle whether to allow 90 degree rotation of the rectangles.
     verbose : bool, default True
     *args, **kwargs
-        all additional arguments are passed to the solver
+        all additional arguments are passed to the solver.
 
     Returns
     -------
