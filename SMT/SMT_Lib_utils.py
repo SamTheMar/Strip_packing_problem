@@ -129,4 +129,4 @@ def SMT_optimize(W, rectangles, allow_rotation, verbose, *args, **kwargs):
 
     if verbose:
         print("Lower bound is UNSAT.")
-    return bisection_solve(W, H_lb+1, H_ub, rectangles, verbose, *args, **kwargs)
+    return bisection_solve(W, H_lb+1, H_ub, rectangles, allow_rotation, verbose, *args, **kwargs)
