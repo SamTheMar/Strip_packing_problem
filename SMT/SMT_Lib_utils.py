@@ -1,5 +1,6 @@
 import numpy as np
 
+from SMT_Lib_solver_rotation import SMT_Lib_solver_rotation
 from SMT_Lib_solver import SMT_Lib_solver
 
 def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation=False, verbose=True, *args, **kwargs):
@@ -46,8 +47,7 @@ def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation=False, verbose=Tru
             print(f"Trying H = {H}.")
 
         if allow_rotation:
-            # TODO: use rotatio class
-            solver = SMT_Lib_solver(W, H, rectangles, *args, **kwargs)
+            solver = SMT_Lib_solver_rotation(W, H, rectangles, *args, **kwargs)
         else:
             solver = SMT_Lib_solver(W, H, rectangles, *args, **kwargs)
         positioned_rectangles = solver.solve()
@@ -116,8 +116,7 @@ def SMT_optimize(W, rectangles, allow_rotation, verbose, *args, **kwargs):
     if allow_rotation:
         if verbose:
             print("Rotation allowed.")
-        # TODO: use rotatio class
-        solver = SMT_Lib_solver(W, H_lb, rectangles, *args, **kwargs)
+        solver = SMT_Lib_solver_rotation(W, H_lb, rectangles, *args, **kwargs)
     else:
         if verbose:
             print("Rotation not allowed.")
