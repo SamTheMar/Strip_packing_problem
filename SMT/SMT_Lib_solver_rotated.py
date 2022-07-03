@@ -44,10 +44,11 @@ class SMT_Lib_solver_rotated(SMT_Lib_solver):
 
     def rotation_constraints(self):
         for i in range(self.n):
-            self.lines += [f"(assert (=> (not R{i}) (= W{i} {self.rectangles[i].w})))"]
-            self.lines += [f"(assert (=> (not R{i}) (= H{i} {self.rectangles[i].h})))"]
-            self.lines += [f"(assert (=> R{i} (= W{i} {self.rectangles[i].h})))"]
-            self.lines += [f"(assert (=> R{i} (= H{i} {self.rectangles[i].w})))"]
+            self.lines.append(f"(assert (=> (not R{i}) (= W{i} {self.rectangles[i].w})))")
+            self.lines.append(f"(assert (=> R{i} (= W{i} {self.rectangles[i].h})))")
+        for i in range(self.n):
+            self.lines.append(f"(assert (=> (not R{i}) (= H{i} {self.rectangles[i].h})))")
+            self.lines.append(f"(assert (=> R{i} (= H{i} {self.rectangles[i].w})))")
 
 
     def add_non_overlapping_constraint(self, i, j, to_add=[True, True, True, True]):
