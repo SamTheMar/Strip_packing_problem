@@ -9,8 +9,8 @@ int: maxDims = max([dims[i,j]| i in circuits, j in 1..2]);
 int: minDims = min([dims[i,j]| i in circuits, j in 1..2]);
 array[circuits] of int: ordering = arg_sort([dims[i,1]*dims[i,2]|i in circuits]);
 
-int: search_heuristic=3;
-int: restart_strategy=1;
+int: search_heuristic=3; % 1 dom_deg, 2 impact, 3 indomain_order
+int: restart_strategy=1; % 1 luby 150, 2 geometric 2 50, 3 niente
 
 
 array [circuits] of var bool : rot ;
