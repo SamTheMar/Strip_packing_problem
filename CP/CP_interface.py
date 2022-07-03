@@ -10,9 +10,9 @@ from utils import visualize_from_file
 import matplotlib.pyplot as plt
 
 
-timeout = timedelta(seconds=300) #300
+timeout = timedelta(seconds=600) #300
 
-model_url = "./CP/VLSI.mzn"
+model_url = "./CP/VLSI-Rotation.mzn"
 
 model = Model(model_url)
 
@@ -42,7 +42,7 @@ time_tables = []
 
 for instance_num in range(1,41):
     input_url = "./CP/CP_instances/ins-%d.dzn"%instance_num
-    output_url = "./CP/CP_solutions/ins-%d.txt"%instance_num
+    output_url = "./CP/CP_solutions_rotation/ins-%d.txt"%instance_num
     solver = Solver.lookup("chuffed")
 
     
