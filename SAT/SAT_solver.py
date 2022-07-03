@@ -13,7 +13,6 @@ class SAT_solver():
         self.H = H
         self.rectangles = rectangles
         self.n = len(rectangles)
-        print("Timeout", timeout)
         self.break_symmetries = break_symmetries
         self.s = Solver()
         self.s.set('timeout', timeout * 1000) ## seconds * milliseconds
