@@ -4,4 +4,4 @@ __pycache__
 *.pyc
 .vscode
 *.smt2
-out*
+out
