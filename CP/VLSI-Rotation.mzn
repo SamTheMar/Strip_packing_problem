@@ -5,34 +5,52 @@ int: w;
 int: n;
 set of int: circuits = 1..n;
 array[circuits,1..2] of int: dims;
-array[circuits,1..2] of var 1..min(w, maxH): rdims;
-array [circuits] of var bool : rot ;
+int: maxDims = max([dims[i,j]| i in circuits, j in 1..2]);
+int: minDims = min([dims[i,j]| i in circuits, j in 1..2]);
+array[circuits] of int: ordering = arg_sort([dims[i,1]*dims[i,2]|i in circuits]);
 
 int: search_heuristic=3;
 int: restart_strategy=1;
 
-array[circuits] of int: ordering = arg_sort([dims[i,1]*dims[i,2]|i in circuits]);
+
+array [circuits] of var bool : rot ;
+array[circuits,1..2] of var 1..maxDims: rdims;
 array[circuits,1..2] of var int: odims = array2d(circuits,1..2,[rdims[ordering[n+1-i],j]|i in circuits, j in 1..2]);
 
 int: minH = ceil((sum(i in circuits)(dims[i,1]*dims[i,2]))/w);
+
+/*
 int: maxH = ceil(let {int: xmax=max(j in circuits)(dims[j,1])} in 
                     sum(i in circuits)(xmax*dims[i,2])/w);
-                    
-                    
-constraint forall ( i in circuits ) (if rot[i]
-  then rdims[i, 2] == dims[i, 1] /\ rdims[i, 1] == dims[i, 2]
-  else rdims[i, 1] == dims[i, 1] /\ rdims[i, 2] == dims[i, 2] endif) ;
-  
-constraint forall (i in circuits) (odims[i, 1] == odims[i, 2] -> rot[i] = false ) ;
+*/
+    
+int: maxH = ceil(let {int: xmax=max(j in circuits)(dims[j,1]),int: ymax=max(j in circuits)(dims[j,2])} in 
+                    min(
+                      sum(i in circuits)(xmax*dims[i,2])/w,
+                      sum(i in circuits)(ymax*dims[i,1])/w));
+                      
 
 % biggest circuit and second biggest circuit
 circuits: bc = 1;
 circuits: sbc = 2;
 
-array [circuits] of var 0..w-min([dims[i, 1]| i in circuits]): x;
-array [circuits] of var 0..maxH-min([dims[i, 2]| i in circuits]): y;
+array [circuits] of var 0..w-minDims: x;
+array [circuits] of var 0..maxH-minDims: y;
 
 var minH..maxH: l = max(i in circuits)(y[i] + odims[i,2]);
+
+%=========================================================================================
+                    
+constraint forall(i in circuits)(rdims[i,1] <= w /\ odims[i,1] <= w);
+constraint forall(i in circuits)(rdims[i,2] <= maxH /\ odims[i,2] <= maxH);
+                    
+constraint forall ( i in circuits ) (if rot[i]
+  then rdims[i, 2] == dims[i, 1] /\ rdims[i, 1] == dims[i, 2]
+  else rdims[i, 1] == dims[i, 1] /\ rdims[i, 2] == dims[i, 2] endif) ;
+  
+constraint forall (i in circuits) (dims[i, 1] == dims[i, 2] -> rot[i] = false ) ;
+constraint forall (i in circuits) (dims[i, 2] > w -> rot[i] = false);
+constraint forall (i in circuits) (dims[i, 1] > maxH -> rot[i] = false);
 
 %overlap constrains
 constraint diffn(x, y, [odims[i, 1]|i in circuits], [odims[i, 2]| i in circuits]) :: domain;
@@ -67,10 +85,19 @@ forall(i,j in circuits where j>i)(if odims[i,1]==odims[j,1] /\ odims[i,2]==odims
 
 % break symmetries for the biggest circuit
 constraint symmetry_breaking_constraint(
-x[1]<=(w-odims[ordering[n],1]) div 2 /\ y[1] <= (l-odims[ordering[n],2]) div 2);
+x[bc]<=(w-odims[bc,1]) div 2 /\ y[bc] <= (l-odims[bc,2]) div 2);
         
 % biggest circuit bottom left to second biggest circuit
 constraint x[bc] <= x[sbc] /\ y[bc] <= y[sbc];
+
+ann: search_ann_rot =
+if search_heuristic == 1 then
+  bool_search([rot[ordering[n+1-i]]| i in circuits], dom_w_deg, indomain_min)
+elseif search_heuristic == 2 then
+  bool_search([rot[ordering[n+1-i]]| i in circuits], impact, indomain_min)
+else
+  bool_search([rot[ordering[n+1-i]]| i in circuits], input_order, indomain_min)
+endif;
 
 ann: search_ann_x =
 if search_heuristic == 1 then
@@ -99,7 +126,8 @@ else
   restart_none
 endif;
 
-solve :: search_ann_x
+solve %:: search_ann_rot
+      :: search_ann_x
       :: search_ann_y
       :: restart_ann
          minimize l;
