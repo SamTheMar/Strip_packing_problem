@@ -1,4 +1,3 @@
-from asyncio import constants
 import subprocess
 import numpy as np
 
@@ -57,15 +56,26 @@ class SMT_Lib_solver():
 
 
     def add_non_overlapping_constraint(self, i, j, to_add = [True, True, True, True]):
-        string = ""
-        if to_add[0]:
-            string += f" (<= (+ posX{i} {self.rectangles[i].w}) posX{j}) "
-        if to_add[1]:
-            string += f" (<= (+ posX{j} {self.rectangles[j].w}) posX{i}) "
-        if to_add[2]:
-            string += f" (<= (+ posY{i} {self.rectangles[i].h}) posY{j}) "
-        if to_add[3]:
-            string += f" (<= (+ posY{j} {self.rectangles[j].h}) posY{i}) "
+        if self.logic == 'QF_IDL':
+            string = ""
+            if to_add[0]:
+                string += f" (<= (- posX{i} posX{j}) -{self.rectangles[i].w}) "
+            if to_add[1]:
+                string += f" (<= (- posX{j} posX{i}) -{self.rectangles[j].w}) "
+            if to_add[2]:
+                string += f" (<= (- posY{i} posY{j}) -{self.rectangles[i].h}) "
+            if to_add[3]:
+                string += f" (<= (- posY{j} posY{i}) -{self.rectangles[j].h}) "
+        else:
+            string = ""
+            if to_add[0]:
+                string += f" (<= (+ posX{i} {self.rectangles[i].w}) posX{j}) "
+            if to_add[1]:
+                string += f" (<= (+ posX{j} {self.rectangles[j].w}) posX{i}) "
+            if to_add[2]:
+                string += f" (<= (+ posY{i} {self.rectangles[i].h}) posY{j}) "
+            if to_add[3]:
+                string += f" (<= (+ posY{j} {self.rectangles[j].h}) posY{i}) "
 
         constraint = " ".join(string.split())
         self.lines += [f"(assert (or {constraint}))"]
