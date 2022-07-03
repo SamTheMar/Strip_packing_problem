@@ -16,6 +16,8 @@ class SMT_Lib_solver_rotated(SMT_Lib_solver):
         #R[i] means that rectangle i is rotated
         for i in range(self.n):
             self.lines.append(f"(declare-fun R{i} () Bool)")
+            self.lines.append(f"(declare-fun W{i} () Int)")
+            self.lines.append(f"(declare-fun H{i} () Int)")
 
 
     def domain(self):
@@ -25,49 +27,66 @@ class SMT_Lib_solver_rotated(SMT_Lib_solver):
         if self.break_symmetries:
             m = np.argmax([r.w * r.h for r in self.rectangles])
             # no rotation
-            self.lines += [f"(assert (or R{i} (<= posX{i} {self.W - self.rectangles[i].w})))" for i in range(self.n) if i != m]
-            self.lines += [f"(assert (or R{i} (<= posY{i} {self.H - self.rectangles[i].h})))" for i in range(self.n) if i != m]
-            self.lines.append(f"(assert (or R{m} (<= posX{m} {(self.W - self.rectangles[m].w)//2})))")
-            self.lines.append(f"(assert (or R{m} (<= posY{m} {(self.H - self.rectangles[m].h)//2})))")
+            self.lines += [f"(assert (=> (not R{i}) (<= posX{i} {self.W - self.rectangles[i].w})))" for i in range(self.n) if i != m]
+            self.lines += [f"(assert (=> (not R{i}) (<= posY{i} {self.H - self.rectangles[i].h})))" for i in range(self.n) if i != m]
+            self.lines.append(f"(assert (=> (not R{m}) (<= posX{m} {(self.W - self.rectangles[m].w)//2})))")
+            self.lines.append(f"(assert (=> (not R{m}) (<= posY{m} {(self.H - self.rectangles[m].h)//2})))")
             # rotation
-            self.lines += [f"(assert (or (not R{i}) (<= posX{i} {self.W - self.rectangles[i].h})))" for i in range(self.n) if i != m]
-            self.lines += [f"(assert (or (not R{i}) (<= posY{i} {self.H - self.rectangles[i].w})))" for i in range(self.n) if i != m]
-            self.lines.append(f"(assert (or (not R{m}) (<= posX{m} {(self.W - self.rectangles[m].h)//2})))")
-            self.lines.append(f"(assert (or (not R{m}) (<= posY{m} {(self.H - self.rectangles[m].w)//2})))")
+            self.lines += [f"(assert (=> R{i} (<= posX{i} {self.W - self.rectangles[i].h})))" for i in range(self.n) if i != m]
+            self.lines += [f"(assert (=> R{i} (<= posY{i} {self.H - self.rectangles[i].w})))" for i in range(self.n) if i != m]
+            self.lines.append(f"(assert (=> R{m} (<= posX{m} {(self.W - self.rectangles[m].h)//2})))")
+            self.lines.append(f"(assert (=> R{m} (<= posY{m} {(self.H - self.rectangles[m].w)//2})))")
         else:
             # no rotation
-            self.lines += [f"(assert (or R{i} (<= posX{i} {self.W - self.rectangles[i].w})))" for i in range(self.n)]
-            self.lines += [f"(assert (or R{i} (<= posY{i} {self.H - self.rectangles[i].h})))" for i in range(self.n)]
+            self.lines += [f"(assert (=> (not R{i}) (<= posX{i} {self.W - self.rectangles[i].w})))" for i in range(self.n)]
+            self.lines += [f"(assert (=> (not R{i}) (<= posY{i} {self.H - self.rectangles[i].h})))" for i in range(self.n)]
             # rotation
-            self.lines += [f"(assert (or (not R{i}) (<= posX{i} {self.W - self.rectangles[i].h})))" for i in range(self.n)]
-            self.lines += [f"(assert (or (not R{i}) (<= posY{i} {self.H - self.rectangles[i].w})))" for i in range(self.n)]
+            self.lines += [f"(assert (=> R{i} (<= posX{i} {self.W - self.rectangles[i].h})))" for i in range(self.n)]
+            self.lines += [f"(assert (=> R{i} (<= posY{i} {self.H - self.rectangles[i].w})))" for i in range(self.n)]
+
+
+    def rotation_constraints(self):
+        for i in range(self.n):
+            self.lines += [f"(assert (=> (not R{i}) (= W{i} {self.rectangles[i].w})))"]
+            self.lines += [f"(assert (=> (not R{i}) (= H{i} {self.rectangles[i].h})))"]
+            self.lines += [f"(assert (=> R{i} (= W{i} {self.rectangles[i].h})))"]
+            self.lines += [f"(assert (=> R{i} (= H{i} {self.rectangles[i].w})))"]
 
 
     def add_non_overlapping_constraint(self, i, j, to_add=[True, True, True, True]):
         string = ""
-        string_rotated = ""
         if to_add[0]:
-            string += f" (<= (+ posX{i} {self.rectangles[i].w}) posX{j}) "
-            string_rotated += f" (<= (+ posX{i} {self.rectangles[i].h}) posX{j}) "
+            string += f" (<= (+ posX{i} W{i}) posX{j}) "
         if to_add[1]:
-            string += f" (<= (+ posX{j} {self.rectangles[j].w}) posX{i}) "
-            string_rotated += f" (<= (+ posX{j} {self.rectangles[j].h}) posX{i}) "
+            string += f" (<= (+ posX{j} W{j}) posX{i}) "
         if to_add[2]:
-            string += f" (<= (+ posY{i} {self.rectangles[i].h}) posY{j}) "
-            string_rotated += f" (<= (+ posY{i} {self.rectangles[i].w}) posY{j}) "
+            string += f" (<= (+ posY{i} H{i}) posY{j}) "
         if to_add[3]:
-            string += f" (<= (+ posY{j} {self.rectangles[j].h}) posY{i}) "
-            string_rotated += f" (<= (+ posY{j} {self.rectangles[j].w}) posY{i}) "
+            string += f" (<= (+ posY{j} H{j}) posY{i}) "
 
         constraint = " ".join(string.split())
-        constraint_rotated = " ".join(string_rotated.split())
-        self.lines += [f"(assert (or R{i} (or {constraint})))"]
-        self.lines += [f"(assert (or (not R{i}) (or {constraint_rotated})))"]
+        self.lines += [f"(assert (or {constraint}))"]
 
 
     def check(self):
         super().check()
         self.lines.append(f"(get-value ({' '.join([f'R{i}' for i in range(self.n)])}))")
+
+
+    def create_SMT_file(self):
+        self.write_logic()
+        self.decisional_variables()
+        self.domain()
+        self.rotation_constraints()
+        if self.break_symmetries:
+            self.non_overlapping_constraints_SB()
+        else:
+            self.non_overlapping_constraints()
+        self.check()
+
+        with open(self.filename, "w") as f:
+            for line in self.lines:
+                f.write(line+"\n")
 
 
     def parse_solution(self, output_string):
