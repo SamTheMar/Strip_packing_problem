@@ -384,25 +384,26 @@ def visualize_execution_times(data, labels, bar_width=0.3, timeout = 300, ax = N
     else:
         fig = ax.get_figure()
 
-    ins_number = np.arange(len(data[0]))+1
-    ind_done = [np.argwhere(d<=timeout).squeeze() for d in data]
-    ind_timeout = [np.argwhere(d>timeout).squeeze() for d in data]
-
+    n_modes, n_instances = np.shape(data)
+    ins_number = np.arange(n_instances)+1
+    indices_done = [np.argwhere(d<=timeout).squeeze() for d in data]
+    indices_timeout = [np.argwhere(d>timeout).squeeze() for d in data]
+    
     #TODO: improve this
-    offsets = np.linspace(-bar_width/2, bar_width/2, len(data))
+    offsets = np.linspace(-bar_width/2, bar_width/2, n_modes)
     bar_width *= 0.95
 
     ax.set_yscale('log')
 
-    for i in range(len(data)):
-        id = ind_done[i]
-        it = ind_timeout[i]
+    for i in range(n_modes):
+        id = indices_done[i]
+        it = indices_timeout[i]
         ax.bar(ins_number[id] + offsets[i], data[i][id], color = f"C{i}", width = bar_width, label = labels[i])
         ax.bar(ins_number[it] + offsets[i], data[i][it], color = f"C{i}", width = bar_width, hatch = '//', alpha = 0.3)
 
     if show_stats_table: make_stats_table(data, ax)
 
-    ax.set_xlim(0, len(data[0])+1)
+    ax.set_xlim(0, n_instances+1)
     ax.set_xticks(ins_number)
 
     ax.set_yticks(np.concatenate([ax.get_yticks(), [30, 200, 300]]))
