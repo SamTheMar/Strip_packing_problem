@@ -5,7 +5,7 @@ import time
 from z3 import Z3Exception
 from subprocess import TimeoutExpired
 
-from common.utils import visualize, read_instance, save_solution, sort_by_area
+from common.utils import visualize, read_instance, save_solution, sort_by_area, write_execution_time
 
 from SMT.SMT_Lib_solver import SMT_Lib_solver
 from SMT.SMT_Lib_solver_rotated import SMT_Lib_solver_rotated
@@ -268,9 +268,7 @@ def compute_all_instances(mode = 'SAT',
             if save_to_file:
                 plt.savefig(plot_folder + ins_filename.split('/')[-1].split('.')[0] + "." + plot_output_format.split('.')[-1])
                 save_solution(solution_filename, W, H, positioned_rectangles)
-                with open(solution_filename, "a") as f:
-                    f.write(f"\nexecution time in seconds: {execution_time:.3f}")
-
+                write_execution_time(solution_filename, execution_time)
             if plot:
                 plt.show()
             else:

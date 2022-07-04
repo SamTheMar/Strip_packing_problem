@@ -2,8 +2,12 @@ from datetime import timedelta
 from minizinc import Instance, Model, Solver
 from time import time
 
+import sys
+sys.path.append("./")
+from common.utils import write_execution_time
 
-timeout = timedelta(seconds=600) #300
+
+timeout = timedelta(seconds=300) #300
 
 rotation = False
 
@@ -17,7 +21,7 @@ solver = Solver.lookup("chuffed")
 
 time_tables = []
 
-for instance_num in range(1,41):
+for instance_num in range(1,11):
     input_url = "./CP/CP_instances/ins-%d.dzn"%instance_num
     if rotation:
         output_url = "./CP/CP_solutions_rotation/ins-%d.txt"%instance_num
@@ -30,10 +34,12 @@ for instance_num in range(1,41):
     try:
         start_time = time()
         result = instance.solve(timeout=timeout)
-        time_tables.append(time()-start_time)
+        execution_time = time()-start_time
+        time_tables.append(execution_time)
 
         with open(output_url, "w") as f:
             f.write(str(result))
+        write_execution_time(output_url, execution_time)
 
         print(instance_num,"solved")
     except:
