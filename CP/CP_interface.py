@@ -21,12 +21,12 @@ solver = Solver.lookup("chuffed")
 
 time_tables = []
 
-for instance_num in range(1,11):
+for instance_num in range(1,41):
     input_url = "./CP/CP_instances/ins-%d.dzn"%instance_num
     if rotation:
-        output_url = "./CP/CP_solutions_rotation/ins-%d.txt"%instance_num
+        output_url = "./CP/CP_solutions_rotation/ins-%d-sol.txt"%instance_num
     else:
-        output_url = "./CP/CP_solutions/ins-%d.txt"%instance_num
+        output_url = "./CP/CP_solutions/ins-%d-sol.txt"%instance_num
 
     instance = Instance(solver, model)
     instance.add_file(input_url)
