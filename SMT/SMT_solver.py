@@ -1,10 +1,7 @@
 import numpy as np
-from pkg_resources import add_activation_listener
 from z3 import *
 
-import sys
-sys.path.append("../common")
-from utils import PositionedRectangle
+from common.utils import PositionedRectangle
 
 
 class SMT_solver():

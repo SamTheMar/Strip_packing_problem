@@ -1,9 +1,7 @@
 import subprocess
 import numpy as np
 
-import sys
-sys.path.append("../common")
-from utils import PositionedRectangle
+from common.utils import PositionedRectangle
 
 
 class SMT_Lib_solver():

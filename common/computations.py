@@ -5,15 +5,12 @@ import time
 from z3 import Z3Exception
 from subprocess import TimeoutExpired
 
-from utils import visualize, read_instance, save_solution, sort_by_area
+from common.utils import visualize, read_instance, save_solution, sort_by_area
 
-import sys
-sys.path.append('../SAT')
-sys.path.append('../SMT')
-from SMT_Lib_solver import SMT_Lib_solver
-from SMT_Lib_solver_rotated import SMT_Lib_solver_rotated
-from SAT_solver import SAT_solver
-from SAT_solver_rotated import SAT_solver_rotated
+from SMT.SMT_Lib_solver import SMT_Lib_solver
+from SMT.SMT_Lib_solver_rotated import SMT_Lib_solver_rotated
+from SAT.SAT_solver import SAT_solver
+from SAT.SAT_solver_rotated import SAT_solver_rotated
 
 
 def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation=False, verbose=True, mode = 'SAT', *args, **kwargs):
@@ -216,8 +213,8 @@ def compute_all_instances(mode = 'SAT',
         print("ERROR! The mode must either be SAT or SMT!")
         return
 
-    input_folder = "../instances/"
-    output_folder = f"../{mode}/out/"
+    input_folder = "./instances/"
+    output_folder = f"./{mode}/out/"
 
     if allow_rotation:
         output_folder += "rotation/"

@@ -1,9 +1,7 @@
-from utils import PositionedRectangle, Rectangle
 import numpy as np
-from SMT_Lib_solver import SMT_Lib_solver
 
-import sys
-sys.path.append("../common")
+from common.utils import PositionedRectangle, Rectangle
+from SMT.SMT_Lib_solver import SMT_Lib_solver
 
 
 class SMT_Lib_solver_rotated(SMT_Lib_solver):

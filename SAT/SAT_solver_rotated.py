@@ -1,11 +1,8 @@
 import numpy as np
 from z3 import *
 
-import sys
-sys.path.append("../common")
-
-from utils import PositionedRectangle, Rectangle
-from SAT_solver import SAT_solver
+from common.utils import PositionedRectangle, Rectangle
+from SAT.SAT_solver import SAT_solver
 
 
 class SAT_solver_rotated(SAT_solver):

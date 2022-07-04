@@ -1,6 +1,4 @@
-import sys
-sys.path.append("./common")
-from utils import read_instance
+from common.utils import read_instance
 
 for i in range(1,41):
 
