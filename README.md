@@ -25,7 +25,7 @@ All SMT solutions here have been generated with ``z3``.
 
 ### CP and LP
 If you want to compute the SAT solutions yourself, you need the following Python packages (in addition do the previous):
- - ```minizinc``
+ - ``minizinc``
 
 To install it:
 ```
