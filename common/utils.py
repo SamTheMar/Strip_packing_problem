@@ -140,19 +140,19 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
         the width and height of every rectangle.
     ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
         The axes on which to show the plot
-    plot_width : int, default 720
+    plot_width : int, default: 720
         Plot width in pixels. Used only if ax in not provided.
-    dpi : int, default 100
+    dpi : int, default: 100
         dpi of the plot figure. Used only if ax in not provided.
-    linewidth : float, default 3
+    linewidth : float, default: 3
         linewidth of the rectangle borders.
-    show_grid : bool, default True
-    gridwidth : float, default 1
+    show_grid : bool, default: True
+    gridwidth : float, default: 1
         linewidth of the grid lines. Used only if show_grid is True.
-    gridstyle : string, default '-'
-    show_rectangle_numbering : bool, default True
+    gridstyle : string, default: '-'
+    show_rectangle_numbering : bool, default: True
         toggle whether to show the number of the rectangle in the lower left corner.
-    show_info : bool, default True
+    show_info : bool, default: True
         toggle whether to show the width and height of the strip and the number of rectangles on the title.
     additional_info : string, optinal
         Additional information to display on the title.
@@ -334,45 +334,74 @@ def get_timing_stats(execution_times, timeout = 300):
     return stats
 
 
-def make_stats_table(execution_time_data, ax, bbox=(0.05, 0.60, 0.17, 0.17)):
+def make_stats_table(execution_time_data, ax, bbox, bar_colors):
     """
     Make a table on the provided axes with the stats of the execution time for each computation approache.
     """
     spaces = 10
     rows = [' ' * spaces for i in range(len(execution_time_data))]
-    rowcolors = [f'C{i}' for i in range(len(execution_time_data))]
     cols = ('Solved \ninstances', 'Average\nruntime')
 
     stats = [get_timing_stats(execution_times) for execution_times in execution_time_data]
     t = [[f'{s["solved instances"]}/40', f'{s["average time (solved)"]:.2f} s'] for s in stats]
-    return ax.table(t, rowLabels=rows, rowColours=rowcolors, colLabels=cols, bbox=bbox)
+    return ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
 
 
-def visualize_execution_times(data, labels, bar_width=0.3, timeout = 300, ax = None, plot_height = 720, aspect = 16/9, dpi = 100, show_grid = True, show_stats_table = True, title = None):
+def visualize_execution_times(data,
+                              labels = None,
+                              title = None,
+                              timeout = 300,
+                              instance_labels = None,
+                              show_stats_table = True,
+                              show_grid = True,
+                              label_axis = True,
+                              ax = None,
+                              bar_width=-1,
+                              bar_clearance = 0.95,
+                              plot_height = 720,
+                              aspect = 16/9,
+                              dpi = 100,
+                              stats_table_bbox=(0.05, 0.5, 0.17, 0.2),
+                              bar_colors = None,
+                              starting_color = 0):
     """
     Visualize the execution time for multiple computation approaches for each instance.
 
     Parameters
     ----------
     data : 2D array or array-like
-        data with execution time. Its shape mus be (num_approaches, num_instances).
-    labels : array or array-like
-        list of labels for each computation approach.
-    bar_width : float, default 0.3
-        width of the bars.
-    timeout : int, default 300
-        chosen value for the computation timeout in seconds.
-    ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
-        The axes on which to show the plot
-    plot_height : int, default 720
-        plot height in pixels
-    aspect : float, default 16/9
-        aspect ratio of the plot figure.
-    dpi : float, default 100
-    show_grid : bool, default True
-    show_stats_table : bool, default True
+        Data with execution time. Its shape must be (num_approaches, num_instances).
+    labels : array or array-like, optional
+        List of labels for each computation approach.
     title : string, optional
-        Title to display on top of the figure
+        Title to display on top of the figure.
+    timeout : int, default: 300
+        Chosen value for the computation timeout in seconds.
+    instance_labels : array or array-like, optional
+        Array of instance labels. If not provided, the instances are progressively numbered starting with 1.
+    show_stats_table : bool, default: True
+    show_grid : bool, default: True
+    label_axis : bool, default: True,
+        Show labels on axes.
+    ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
+        The axes on which to show the plot.
+    bar_width : float, optional
+        Total width of all the bars for the same value. Defaults to 0.9 IF num_approaches is 1, 0.6 otherwise.
+    bar_clearance : float, default: 0.95
+        Clearence between the bars for the same value. Useful only if num_approaches is greater than 1.
+    plot_height : int, default: 720
+        Plot height in pixels. Useful only if ax is not provided.
+    aspect : float, default: 16/9
+        Aspect ratio of the plot figure. Useful only if ax is not provided.
+    dpi : float, default: 100
+        Useful only if ax is not provided.
+    stats_table_bbox : tuple, optional
+        Bounding box of the stats table. It is a tuple in the form (x_pos, y_pos, width, height).
+    bar_colors : list of colors, optional
+        colors of the bars.
+    starting_color : int, default: 0
+        Starting matplotlib color for the bars. Overridden if bar-colors is provided.
+
 
     Returns
     -------
@@ -384,38 +413,127 @@ def visualize_execution_times(data, labels, bar_width=0.3, timeout = 300, ax = N
     else:
         fig = ax.get_figure()
 
-    n_modes, n_instances = np.shape(data)
-    ins_number = np.arange(n_instances)+1
-    indices_done = [np.argwhere(d<=timeout).squeeze() for d in data]
-    indices_timeout = [np.argwhere(d>timeout).squeeze() for d in data]
-    
-    #TODO: improve this
-    offsets = np.linspace(-bar_width/2, bar_width/2, n_modes)
-    bar_width *= 0.95
-
+    # set logarithmic scale
     ax.set_yscale('log')
 
-    for i in range(n_modes):
+    # 
+    n_approaches, n_instances = np.shape(data)
+    instance_indices = np.arange(n_instances)+1
+    indices_done = [np.argwhere(d<=timeout).squeeze() for d in data]
+    indices_timeout = [np.argwhere(d>timeout).squeeze() for d in data]
+
+    # set bar widths and offsets
+    if bar_width == -1:
+        if n_approaches == 1:
+            bar_width = 0.9
+        else:
+            bar_width = 0.6
+    offsets = ((np.arange(n_approaches)-(n_approaches-1)/2)/n_approaches)*bar_width
+    if n_approaches == 1:
+        final_bar_width = bar_width
+    else:
+        final_bar_width = bar_clearance*bar_width/n_approaches
+
+    # handle labels
+    draw_legend = labels is not None
+    if not draw_legend:
+        labels = [i for i in range(n_approaches)]
+
+    # set bar colors
+    if bar_colors is None:
+        bar_colors = [f"C{(i+starting_color)%10}" for i in range(n_approaches)]
+
+    # draw bars
+    for i in range(n_approaches):
         id = indices_done[i]
         it = indices_timeout[i]
-        ax.bar(ins_number[id] + offsets[i], data[i][id], color = f"C{i}", width = bar_width, label = labels[i])
-        ax.bar(ins_number[it] + offsets[i], data[i][it], color = f"C{i}", width = bar_width, hatch = '//', alpha = 0.3)
+        ax.bar(instance_indices[id] + offsets[i], data[i][id], color = bar_colors[i], width = final_bar_width, label = labels[i])
+        ax.bar(instance_indices[it] + offsets[i], data[i][it], color = bar_colors[i], width = final_bar_width, hatch = '/////', alpha = 0.3)
 
-    if show_stats_table: make_stats_table(data, ax)
-
+    # setup axis labelling
     ax.set_xlim(0, n_instances+1)
-    ax.set_xticks(ins_number)
+    ax.set_xticks(instance_indices)
+    if instance_labels is not None:
+        ax.set_xticklabels(instance_labels[:n_instances])
 
-    ax.set_yticks(np.concatenate([ax.get_yticks(), [30, 200, 300]]))
+    ax.set_yticks(np.concatenate([ax.get_yticks(), [30, 100, 300]]))
     ax.set_ylim(1e-2, 300)
     ax.get_yaxis().set_major_formatter(ScalarFormatter())
 
+    if label_axis:
+        ax.set_xlabel("Instance number")
+        ax.set_ylabel("Execution time in seconds")
+
+    # draw grid, stats and legend
     if show_grid:
+        ax.set_axisbelow(True)
         ax.grid(axis = 'y')
-    ax.legend()
+    if show_stats_table: make_stats_table(data, ax, stats_table_bbox, bar_colors)
+    if draw_legend: ax.legend()
 
     if title is not None:
-        fig.suptitle(title)
+        ax.set_title(title)
     fig.tight_layout(pad = 0.8)
 
     return fig, ax
+
+
+def visualize_execution_times_two_plots(data_upper,
+                                        data_lower,
+                                        axs = [],
+                                        plot_height = 720,
+                                        aspect = 16/9,
+                                        dpi = 100,
+                                        suptitle = None,
+                                        kw_upper = {},
+                                        kw_lower = {}):
+    """
+    Visualize the execution time for multiple computation approaches for each instance on two plots, with the lower one having inverted bars.
+
+    Parameters
+    ----------
+    data_upper : 2D array or array-like
+        Data with execution time. Its shape must be (num_approaches, num_instances). Shown in the upper plot.
+    data_lower : 2D array or array-like
+        Data with execution time. Its shape must be (num_approaches, num_instances). Shown in the lower plot.
+    axs : list of ``matplotlib.axes._subplots.AxesSubplot``, optional
+        The axes on which to show the plot.
+    plot_height : int, default: 720
+        Plot height in pixels. Useful only if ax is not provided.
+    aspect : float, default: 16/9
+        Aspect ratio of the plot figure. Useful only if ax is not provided.
+    dpi : float, default: 100
+        Useful only if ax is not provided.
+    suptitle : string, optional
+        Title to display on top of the figure.
+    kw_upper : dict, optional
+        Dictionary of keyword arguments for the upper plot, passed to ``visualize_execution_times``.
+    kw_lower : dict, optional
+        Dictionary of keyword arguments for the lower plot, passed to ``visualize_execution_times``.
+
+    Returns
+    -------
+    ``matplotlib.figure.Figure``, ``matplotlib.axes._subplots.AxesSubplot``
+    """
+    if len(axs) == 0:
+        fw, fh = plot_height*aspect, plot_height
+        fig, axs = plt.subplots(nrows = 2, figsize = (fw/dpi, fh/dpi), dpi = dpi, sharex = True)
+
+    ax1, ax2 = axs
+
+    if "stats_table_bbox" not in kw_upper.keys():
+        kw_upper["stats_table_bbox"] = (0.05, 0.6, 0.17, 0.3)
+    if "stats_table_bbox" not in kw_lower.keys():
+        kw_lower["stats_table_bbox"] = (0.05, 0.2, 0.17, 0.3)
+
+    visualize_execution_times(data_upper, ax = ax1, label_axis=False, **kw_upper)
+    visualize_execution_times(data_lower, ax = ax2, **kw_lower)
+    ax2.invert_yaxis()
+
+    if suptitle is not None:
+        fig.suptitle(suptitle)
+
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.1)
+
+    return fig, axs
