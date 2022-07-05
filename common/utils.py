@@ -383,7 +383,7 @@ def get_timing_stats(execution_times, timeout = 300):
 
 def make_stats_table(execution_time_data, ax, bbox, bar_colors):
     """
-    Make a table on the provided axes with the stats of the execution time for each computation approache.
+    Make a table on the provided axes with the stats of the execution time for each computation approach.
     """
     spaces = 10
     rows = [' ' * spaces for i in range(len(execution_time_data))]
@@ -391,8 +391,8 @@ def make_stats_table(execution_time_data, ax, bbox, bar_colors):
 
     stats = [get_timing_stats(execution_times) for execution_times in execution_time_data]
     t = [[f'{s["solved instances"]}/40', f'{s["average time (solved)"]:.2f} s'] for s in stats]
-    return ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
-
+    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
+    table.set_zorder(200)
 
 def visualize_execution_times(data,
                               labels = None,
