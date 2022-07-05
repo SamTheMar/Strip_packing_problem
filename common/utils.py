@@ -125,7 +125,7 @@ def save_solution(filename, W, H, rectangles):
             f.write(f"{rect.w} {rect.h} {rect.x} {rect.y}\n")
 
 
-def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidth = 3, show_grid = True, gridwidth = 0.5, gridstyle = '-', show_rectangle_numbering = True, show_info = True, additional_info = ""):
+def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidth = 3, grid = True, gridwidth = 0.5, gridstyle = '-', rectangle_numbering = True, axis_off = False, show_info = True, additional_info = ""):
     """
     Visualization of the a strip of size width x height with the layout of the rectangles.
     The rectangles are annotated with their place in the input list on the figure.
@@ -147,12 +147,14 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
         dpi of the plot figure. Used only if ax in not provided.
     linewidth : float, default: 3
         linewidth of the rectangle borders.
-    show_grid : bool, default: True
+    grid : bool, default: True
     gridwidth : float, default: 1
         linewidth of the grid lines. Used only if show_grid is True.
     gridstyle : string, default: '-'
-    show_rectangle_numbering : bool, default: True
+    rectangle_numbering : bool, default: True
         toggle whether to show the number of the rectangle in the lower left corner.
+    axis_off : bool, default: False
+        turn off the axis.
     show_info : bool, default: True
         toggle whether to show the width and height of the strip and the number of rectangles on the title.
     additional_info : string, optinal
@@ -188,7 +190,7 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
                 alpha = 0.8
             )
         )
-        if show_rectangle_numbering:
+        if rectangle_numbering:
             if W < 15:
                 fontsize = 'xx-large'
             elif  W < 20:
@@ -198,7 +200,7 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
             else:
                 fontsize = 'medium'
 
-            if not show_grid:
+            if not grid:
                 fontsize = 'xx-large'
             ax.text(r.x + 0.25, r.y + 0.25, str(idx+1), fontsize = fontsize)
 
@@ -210,7 +212,7 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
 
     ax.set_aspect('equal', adjustable='box')
     
-    if show_grid:
+    if grid:
         ax.grid(color = 'k', ls = gridstyle, linewidth = gridwidth)
 
     ax.set_facecolor('w')
@@ -224,6 +226,10 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
         fig.suptitle(additional_info + f"{len(rectangles)} rectangles, W = {W}, H = {H}")
 
     fig.tight_layout(pad = 1)
+    if axis_off:
+        ax.set_axis_off()
+        if not show_info:
+            fig.tight_layout(pad = 0)
 
     return fig, ax
 
