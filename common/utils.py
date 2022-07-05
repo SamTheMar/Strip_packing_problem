@@ -4,6 +4,7 @@ import matplotlib.patches as patches
 import matplotlib.colors as mcolors
 from matplotlib.ticker import ScalarFormatter
 
+import os
 from os import listdir, path
 
 from collections import namedtuple
@@ -297,6 +298,7 @@ def generate_plots_from_files(input_folder, output_folder = None, show_plots = T
         instance_name = "-".join(filename.split(".")[0].split("-")[:-1])
         fig, ax = visualize_from_file(path.join(input_folder, filename), additional_info = instance_name, *args, **kwargs)
         if output_folder is not None:
+            if not os.path.isdir(output_folder): os.makedirs(output_folder)
             if type(plot_format) == str:
                 fig.savefig(path.join(output_folder,filename.split(".")[0]) + '.' + plot_format)
             else:
@@ -322,6 +324,9 @@ def write_execution_time(filename, execution_time):
     """
     Write execution time from a single file.
     """
+    if not os.path.isfile(filename):
+        print("ERROR: File does not exist")
+        return
     with open(filename, "a") as f:
         f.write(f"\nexecution time in seconds: {execution_time:.3f}")
 
