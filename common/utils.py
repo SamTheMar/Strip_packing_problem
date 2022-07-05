@@ -354,6 +354,7 @@ def visualize_execution_times(data,
                               instance_labels = None,
                               show_stats_table = True,
                               show_grid = True,
+                              label_axis = True,
                               ax = None,
                               bar_width=-1,
                               bar_clearance = 0.95,
@@ -377,9 +378,11 @@ def visualize_execution_times(data,
     timeout : int, default: 300
         Chosen value for the computation timeout in seconds.
     instance_labels : array or array-like, optional
-        array of instance labels. If not provided, the instances are progressively numbered starting with 1.
+        Array of instance labels. If not provided, the instances are progressively numbered starting with 1.
     show_stats_table : bool, default: True
     show_grid : bool, default: True
+    label_axis : bool, default: True,
+        Show labels on axes.
     ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
         The axes on which to show the plot.
     bar_width : float, optional
@@ -453,9 +456,13 @@ def visualize_execution_times(data,
     if instance_labels is not None:
         ax.set_xticklabels(instance_labels[:n_instances])
 
-    ax.set_yticks(np.concatenate([ax.get_yticks(), [30, 200, 300]]))
+    ax.set_yticks(np.concatenate([ax.get_yticks(), [30, 100, 300]]))
     ax.set_ylim(1e-2, 300)
     ax.get_yaxis().set_major_formatter(ScalarFormatter())
+
+    if label_axis:
+        ax.set_xlabel("Instance number")
+        ax.set_ylabel("Execution time in seconds")
 
     # draw grid, stats and legend
     if show_grid:
@@ -519,7 +526,7 @@ def visualize_execution_times_two_plots(data_upper,
     if "stats_table_bbox" not in kw_lower.keys():
         kw_lower["stats_table_bbox"] = (0.05, 0.2, 0.17, 0.3)
 
-    visualize_execution_times(data_upper, ax = ax1, **kw_upper)
+    visualize_execution_times(data_upper, ax = ax1, label_axis=False, **kw_upper)
     visualize_execution_times(data_lower, ax = ax2, **kw_lower)
     ax2.invert_yaxis()
 
