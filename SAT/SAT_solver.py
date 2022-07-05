@@ -68,7 +68,6 @@ class SAT_solver():
 
 
     def domain_reducing_constraints(self):
-        #TODO: check with the ordering constraints
         for i in range(self.n):
             for e in range(self.W - self.rectangles[i].w, self.W):
                 self.s.add(self._px[i][e])
@@ -84,7 +83,6 @@ class SAT_solver():
 
 
     def ordering_constraints(self):
-        #TODO: check with domain reducing constraints
         for i in range(self.n):
             for e in range(self.W - self.rectangles[i].w - 1):
                 self.s.add(Implies(self._px[i][e], self._px[i][e + 1]))
