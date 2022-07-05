@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 import matplotlib.colors as mcolors
 from matplotlib.ticker import ScalarFormatter
 
-from os import listdir
+from os import listdir, path
 
 from collections import namedtuple
 
@@ -271,6 +271,42 @@ def visualize_from_file(filename, **kwargs):
     W, H, rectangles = read_solution(filename)
     fig, ax = visualize(W, H, rectangles, **kwargs)
     return fig, ax
+
+
+def generate_plots_from_files(input_folder, output_folder = None, show_plots = True, plot_format = ['png'], *args, **kwargs):
+    """
+    Generate plots from the solution files in the provided folder.
+
+    Parameters
+    ----------
+    input_folder : str
+    output_folder : str, optional
+        folder where to save the plots. If not provided, the plots will not be saved.
+    show_plots : bool, default: True
+        Toggle whether to show the plots in the output.
+    plot_formats : string or list of string, optional
+        format in which to save the plots.
+    *args, **kwargs
+        attitional arguments are passed to ``visualize_from_file``
+    """
+    filenames = listdir(input_folder)
+    instance_numbers = [int(name.split("-")[1]) for name in filenames]
+    _, filenames = zip(*sorted(zip(instance_numbers, filenames)))
+
+    for filename in filenames:
+        instance_name = "-".join(filename.split(".")[0].split("-")[:-1])
+        fig, ax = visualize_from_file(path.join(input_folder, filename), additional_info = instance_name, *args, **kwargs)
+        if output_folder is not None:
+            if type(plot_format) == str:
+                fig.savefig(path.join(output_folder,filename.split(".")[0]) + '.' + plot_format)
+            else:
+                for f in plot_format:
+                    fig.savefig(path.join(output_folder,filename.split(".")[0]) + '.' + f)
+        if show_plots:
+            plt.show()
+            print(150*"=")
+        else:
+            plt.close(fig)
 
 
 def sort_by_area(rectangles, reverse = True):
