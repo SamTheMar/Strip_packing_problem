@@ -477,6 +477,7 @@ def visualize_execution_times_two_plots(data_upper,
                                         plot_height = 720,
                                         aspect = 16/9,
                                         dpi = 100,
+                                        suptitle = None,
                                         kw_upper = {},
                                         kw_lower = {}):
     """
@@ -496,6 +497,8 @@ def visualize_execution_times_two_plots(data_upper,
         Aspect ratio of the plot figure. Useful only if ax is not provided.
     dpi : float, default: 100
         Useful only if ax is not provided.
+    suptitle : string, optional
+        Title to display on top of the figure.
     kw_upper : dict, optional
         Dictionary of keyword arguments for the upper plot, passed to ``visualize_execution_times``.
     kw_lower : dict, optional
@@ -519,6 +522,9 @@ def visualize_execution_times_two_plots(data_upper,
     visualize_execution_times(data_upper, ax = ax1, **kw_upper)
     visualize_execution_times(data_lower, ax = ax2, **kw_lower)
     ax2.invert_yaxis()
+
+    if suptitle is not None:
+        fig.suptitle(suptitle)
 
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.1)
