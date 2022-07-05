@@ -495,7 +495,7 @@ def visualize_execution_times(data,
         id = indices_done[i]
         it = indices_timeout[i]
         ax.bar(instance_indices[id] + offsets[i], data[i][id], color = bar_colors[i], width = final_bar_width, label = labels[i])
-        ax.bar(instance_indices[it] + offsets[i], data[i][it], color = bar_colors[i], width = final_bar_width, hatch = '/////', alpha = 0.3)
+        ax.bar(instance_indices[it] + offsets[i], data[i][it], color = bar_colors[i], edgecolor = 'k', width = final_bar_width, hatch = '/////', alpha = 0.25)
 
     # setup axis labelling
     ax.set_xlim(0, n_instances+1)
