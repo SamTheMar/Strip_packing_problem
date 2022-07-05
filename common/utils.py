@@ -395,7 +395,7 @@ def visualize_execution_times(data,
         Aspect ratio of the plot figure. Useful only if ax is not provided.
     dpi : float, default: 100
         Useful only if ax is not provided.
-    stats_table_bbox : tuple, optional
+    stats_table_bbox : tuple, default: (0.05, 0.5, 0.17, 0.2)
         Bounding box of the stats table. It is a tuple in the form (x_pos, y_pos, width, height).
     bar_colors : list of colors, optional
         colors of the bars.
