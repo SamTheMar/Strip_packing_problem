@@ -5,6 +5,8 @@ import time
 from z3 import Z3Exception
 from subprocess import TimeoutExpired
 
+import os
+
 from common.utils import visualize, read_instance, save_solution, sort_by_area, write_execution_time
 
 from SMT.SMT_Lib_solver import SMT_Lib_solver
@@ -169,6 +171,7 @@ def compute_all_instances(mode = 'SAT',
                             input_range=range(40),
                             plot=True,
                             save_to_file=True,
+                            save_plot=False,
                             verbose=True,
                             allow_rotation=False,
                             sorting_by_area=True,
@@ -190,7 +193,9 @@ def compute_all_instances(mode = 'SAT',
     plot : bool, default True
         if True, plot the results as images.
     save_to_file : bool, default True
-        if True, save the computation results and the resulting plots.
+        if True, save the computation results.
+    save_plot : bool, default False
+        if True, save the resulting plots.
     verbose : bool, default True
     allow_rotation : bool, default False
         if True, allow rotation of the rectangles.
@@ -228,6 +233,8 @@ def compute_all_instances(mode = 'SAT',
 
     plot_folder = output_folder + "plot/"
     output_folder += "txt/"
+    if not os.path.isdir(plot_folder): os.makedirs(plot_folder)
+    if not os.path.isdir(output_folder): os.makedirs(output_folder)
 
     print("")
     print(50*"=")
@@ -266,7 +273,8 @@ def compute_all_instances(mode = 'SAT',
             fig.tight_layout(pad=1)
 
             if save_to_file:
-                plt.savefig(plot_folder + ins_filename.split('/')[-1].split('.')[0] + "." + plot_output_format.split('.')[-1])
+                if save_plot:
+                    plt.savefig(plot_folder + ins_filename.split('/')[-1].split('.')[0] + "." + plot_output_format.split('.')[-1])
                 save_solution(solution_filename, W, H, positioned_rectangles)
                 write_execution_time(solution_filename, execution_time)
             if plot:

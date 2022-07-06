@@ -4,7 +4,8 @@ import matplotlib.patches as patches
 import matplotlib.colors as mcolors
 from matplotlib.ticker import ScalarFormatter
 
-from os import listdir
+import os
+from os import listdir, path
 
 from collections import namedtuple
 
@@ -124,7 +125,7 @@ def save_solution(filename, W, H, rectangles):
             f.write(f"{rect.w} {rect.h} {rect.x} {rect.y}\n")
 
 
-def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidth = 3, show_grid = True, gridwidth = 0.5, gridstyle = '-', show_rectangle_numbering = True, show_info = True, additional_info = ""):
+def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidth = 3, grid = True, gridwidth = 0.5, gridstyle = '-', rectangle_numbering = True, axis_off = False, show_info = True, additional_info = ""):
     """
     Visualization of the a strip of size width x height with the layout of the rectangles.
     The rectangles are annotated with their place in the input list on the figure.
@@ -146,12 +147,14 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
         dpi of the plot figure. Used only if ax in not provided.
     linewidth : float, default: 3
         linewidth of the rectangle borders.
-    show_grid : bool, default: True
+    grid : bool, default: True
     gridwidth : float, default: 1
         linewidth of the grid lines. Used only if show_grid is True.
     gridstyle : string, default: '-'
-    show_rectangle_numbering : bool, default: True
+    rectangle_numbering : bool, default: True
         toggle whether to show the number of the rectangle in the lower left corner.
+    axis_off : bool, default: False
+        turn off the axis.
     show_info : bool, default: True
         toggle whether to show the width and height of the strip and the number of rectangles on the title.
     additional_info : string, optinal
@@ -187,7 +190,7 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
                 alpha = 0.8
             )
         )
-        if show_rectangle_numbering:
+        if rectangle_numbering:
             if W < 15:
                 fontsize = 'xx-large'
             elif  W < 20:
@@ -197,7 +200,7 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
             else:
                 fontsize = 'medium'
 
-            if not show_grid:
+            if not grid:
                 fontsize = 'xx-large'
             ax.text(r.x + 0.25, r.y + 0.25, str(idx+1), fontsize = fontsize)
 
@@ -209,7 +212,7 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
 
     ax.set_aspect('equal', adjustable='box')
     
-    if show_grid:
+    if grid:
         ax.grid(color = 'k', ls = gridstyle, linewidth = gridwidth)
 
     ax.set_facecolor('w')
@@ -223,6 +226,10 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
         fig.suptitle(additional_info + f"{len(rectangles)} rectangles, W = {W}, H = {H}")
 
     fig.tight_layout(pad = 1)
+    if axis_off:
+        ax.set_axis_off()
+        if not show_info:
+            fig.tight_layout(pad = 0)
 
     return fig, ax
 
@@ -273,6 +280,43 @@ def visualize_from_file(filename, **kwargs):
     return fig, ax
 
 
+def generate_plots_from_files(input_folder, output_folder = None, show_plots = True, plot_format = ['png'], *args, **kwargs):
+    """
+    Generate plots from the solution files in the provided folder.
+
+    Parameters
+    ----------
+    input_folder : str
+    output_folder : str, optional
+        folder where to save the plots. If not provided, the plots will not be saved.
+    show_plots : bool, default: True
+        Toggle whether to show the plots in the output.
+    plot_formats : string or list of string, optional
+        format in which to save the plots.
+    *args, **kwargs
+        attitional arguments are passed to ``visualize_from_file``
+    """
+    filenames = listdir(input_folder)
+    instance_numbers = [int(name.split("-")[1]) for name in filenames]
+    _, filenames = zip(*sorted(zip(instance_numbers, filenames)))
+
+    for filename in filenames:
+        instance_name = "-".join(filename.split(".")[0].split("-")[:-1])
+        fig, ax = visualize_from_file(path.join(input_folder, filename), additional_info = instance_name, *args, **kwargs)
+        if output_folder is not None:
+            if not os.path.isdir(output_folder): os.makedirs(output_folder)
+            if type(plot_format) == str:
+                fig.savefig(path.join(output_folder,filename.split(".")[0]) + '.' + plot_format)
+            else:
+                for f in plot_format:
+                    fig.savefig(path.join(output_folder,filename.split(".")[0]) + '.' + f)
+        if show_plots:
+            plt.show()
+            print(150*"=")
+        else:
+            plt.close(fig)
+
+
 def sort_by_area(rectangles, reverse = True):
     """
     sorts rectangles by area in decreasing order. If reverse is False, the sorting is in increasing order.
@@ -286,6 +330,9 @@ def write_execution_time(filename, execution_time):
     """
     Write execution time from a single file.
     """
+    if not os.path.isfile(filename):
+        print("ERROR: File does not exist")
+        return
     with open(filename, "a") as f:
         f.write(f"\nexecution time in seconds: {execution_time:.3f}")
 
@@ -336,7 +383,7 @@ def get_timing_stats(execution_times, timeout = 300):
 
 def make_stats_table(execution_time_data, ax, bbox, bar_colors):
     """
-    Make a table on the provided axes with the stats of the execution time for each computation approache.
+    Make a table on the provided axes with the stats of the execution time for each computation approach.
     """
     spaces = 10
     rows = [' ' * spaces for i in range(len(execution_time_data))]
@@ -344,8 +391,8 @@ def make_stats_table(execution_time_data, ax, bbox, bar_colors):
 
     stats = [get_timing_stats(execution_times) for execution_times in execution_time_data]
     t = [[f'{s["solved instances"]}/40', f'{s["average time (solved)"]:.2f} s'] for s in stats]
-    return ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
-
+    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
+    table.set_zorder(200)
 
 def visualize_execution_times(data,
                               labels = None,
@@ -395,7 +442,7 @@ def visualize_execution_times(data,
         Aspect ratio of the plot figure. Useful only if ax is not provided.
     dpi : float, default: 100
         Useful only if ax is not provided.
-    stats_table_bbox : tuple, optional
+    stats_table_bbox : tuple, default: (0.05, 0.5, 0.17, 0.2)
         Bounding box of the stats table. It is a tuple in the form (x_pos, y_pos, width, height).
     bar_colors : list of colors, optional
         colors of the bars.
@@ -448,7 +495,7 @@ def visualize_execution_times(data,
         id = indices_done[i]
         it = indices_timeout[i]
         ax.bar(instance_indices[id] + offsets[i], data[i][id], color = bar_colors[i], width = final_bar_width, label = labels[i])
-        ax.bar(instance_indices[it] + offsets[i], data[i][it], color = bar_colors[i], width = final_bar_width, hatch = '/////', alpha = 0.3)
+        ax.bar(instance_indices[it] + offsets[i], data[i][it], color = bar_colors[i], edgecolor = 'k', width = final_bar_width, hatch = '/////', alpha = 0.25)
 
     # setup axis labelling
     ax.set_xlim(0, n_instances+1)
