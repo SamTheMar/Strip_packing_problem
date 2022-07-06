@@ -7,7 +7,7 @@ To analyze the data we produced, the following packages are sufficient:
  - ``matplotlib``
 
 ### SAT
-If you want to compute the SAT solutions yourself, you need the following Python packages (in addition do the previous):
+If you want to compute the SAT solutions yourself, you need the following Python package (in addition to the fundamental ones):
  - ``z3-solver``
 
 To install it:
@@ -21,10 +21,10 @@ the system PATH. We recommend using ``z3``, as it performs better than ``cvc5``.
 
 Other solvers may also be used, but they require some tweaking of the code to be used with the Python interface.
 
-All SMT solutions here have been generated with ``z3``.
+All SMT solutions here have been generated using ``z3``.
 
 ### CP and LP
-If you want to compute the SAT solutions yourself, you need the following Python packages (in addition do the previous):
+If you want to compute the CP and LP solutions yourself, you need the following Python package (in addition to the fundamental ones):
  - ``minizinc``
 
 To install it:
