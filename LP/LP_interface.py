@@ -9,8 +9,7 @@ from minizinc import Instance, Model, Solver
 from time import time
 
 def filterValidPositionBC(rectangles,V,W,H):
-    #bc = np.argmax([r.w*r.h for r in rectangles])
-    bc = 0
+    bc = np.argmax([r.w*r.h for r in rectangles])
     bc_pos = [((j-V[bc][0])%(W-rectangles[bc].w+1),H-(j-V[bc][0])//(W-rectangles[bc].w+1)-rectangles[bc].h) for j in V[bc]]
     valid_bc_pos = [i+V[bc][0] for i in range(len(bc_pos)) if bc_pos[i][0]<=(W-rectangles[bc].w)//2 and bc_pos[i][1]<=(H-rectangles[bc].h)//2]
     return valid_bc_pos
@@ -59,14 +58,15 @@ def validPositions(rectangles,W,H, verbose=False):
 
     return V,C
 
-def solve_LP(instance_num):
+def solve_LP(instance_num, ordering = True):
     
     input_url = './instances/ins-%d.txt'%instance_num
     output_url = "./LP/out/no_rotation/txt/ins-%d-sol.txt"%instance_num
 
     W, n, rectangles = read_instance(input_url)
 
-    rectangles = [rectangles[i] for i in np.argsort([r.w*r.h for r in rectangles])[::-1]]
+    if ordering:
+        rectangles = [rectangles[i] for i in np.argsort([r.w*r.h for r in rectangles])[::-1]]
 
     H = math.ceil(sum([rectangles[i].w * rectangles[i].h for i in range(n)])/W)-1
 
@@ -97,6 +97,8 @@ def solve_LP(instance_num):
         instance["C"] = C
         instance["V"] = [0 if i<0 else V[i][-1] for i in range(-1,len(rectangles))]
         #instance["V"] = V
+        instance["bc"] = 1 if ordering else np.argmax([r.w*r.h for r in rectangles])+1
+        instance["filteredPosBC"] = set(filterValidPositionBC(rectangles,V,W,H))
 
         inner_start_time = time()
         result = instance.solve(timeout=timeout)
