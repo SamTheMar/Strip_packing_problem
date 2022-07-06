@@ -2,10 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as mcolors
-from matplotlib.ticker import ScalarFormatter
 
 import os
-from os import listdir, path
 
 from collections import namedtuple
 
@@ -296,20 +294,20 @@ def generate_plots_from_files(input_folder, output_folder = None, show_plots = T
     *args, **kwargs
         attitional arguments are passed to ``visualize_from_file``
     """
-    filenames = listdir(input_folder)
+    filenames = os.listdir(input_folder)
     instance_numbers = [int(name.split("-")[1]) for name in filenames]
     _, filenames = zip(*sorted(zip(instance_numbers, filenames)))
 
     for filename in filenames:
         instance_name = "-".join(filename.split(".")[0].split("-")[:-1])
-        fig, ax = visualize_from_file(path.join(input_folder, filename), additional_info = instance_name, *args, **kwargs)
+        fig, ax = visualize_from_file(os.path.join(input_folder, filename), additional_info = instance_name, *args, **kwargs)
         if output_folder is not None:
             if not os.path.isdir(output_folder): os.makedirs(output_folder)
             if type(plot_format) == str:
-                fig.savefig(path.join(output_folder,filename.split(".")[0]) + '.' + plot_format)
+                fig.savefig(os.path.join(output_folder,filename.split(".")[0]) + '.' + plot_format)
             else:
                 for f in plot_format:
-                    fig.savefig(path.join(output_folder,filename.split(".")[0]) + '.' + f)
+                    fig.savefig(os.path.join(output_folder,filename.split(".")[0]) + '.' + f)
         if show_plots:
             plt.show()
             print(150*"=")
@@ -362,7 +360,7 @@ def get_execution_times(folder, num_instances = 40):
                 times[i] = np.finfo(np.float32).max
     else:
         times = []
-        for i, filename in enumerate(listdir(folder)):
+        for i, filename in enumerate(os.listdir(folder)):
             times.append(get_execution_time(f"{folder}/{filename}"))
 
     return np.asarray(times)
@@ -393,6 +391,7 @@ def make_stats_table(execution_time_data, ax, bbox, bar_colors):
     t = [[f'{s["solved instances"]}/40', f'{s["average time (solved)"]:.2f} s'] for s in stats]
     table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
     table.set_zorder(200)
+
 
 def visualize_execution_times(data,
                               labels = None,
@@ -461,7 +460,7 @@ def visualize_execution_times(data,
         fig = ax.get_figure()
 
     # set logarithmic scale
-    ax.set_yscale('log')
+    ax.set_yscale('log', base = 10)
 
     # 
     n_approaches, n_instances = np.shape(data)
@@ -503,9 +502,7 @@ def visualize_execution_times(data,
     if instance_labels is not None:
         ax.set_xticklabels(instance_labels[:n_instances])
 
-    ax.set_yticks(np.concatenate([ax.get_yticks(), [30, 100, 300]]))
-    ax.set_ylim(1e-2, 300)
-    ax.get_yaxis().set_major_formatter(ScalarFormatter())
+    ax.set_ylim(1e-2, timeout)
 
     if label_axis:
         ax.set_xlabel("Instance number")
