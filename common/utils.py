@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import matplotlib.colors as mcolors
 
 import os
 
@@ -174,15 +173,13 @@ def visualize(W, H, rectangles, ax = None, plot_width = 720, dpi = 100, linewidt
     else:
         fig = ax.get_figure()
 
-    colors = list(mcolors.TABLEAU_COLORS.values())
-
     for idx, r in enumerate(rectangles):
         ax.add_patch(
             patches.Rectangle(
                 (r.x, r.y),  # (x,y)
                 r.w,  # width
                 r.h,  # height
-                facecolor = colors[idx%10],
+                facecolor = f"C{idx}",
                 edgecolor = 'k',
                 linewidth = linewidth,
                 alpha = 0.8
