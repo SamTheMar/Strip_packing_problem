@@ -169,13 +169,16 @@ def optimize(W, rectangles, allow_rotation, verbose, mode = 'SAT', *args, **kwar
 
 def compute_all_instances(mode = 'SAT',
                             input_range=range(40),
-                            plot=True,
+                            input_folder = "./instances/",
                             save_to_file=True,
+                            output_folder = None,
+                            show_plot=True,
                             save_plot=False,
+                            plot_folder = None,
                             verbose=True,
                             allow_rotation=False,
-                            sorting_by_area=True,
                             break_symmetries=True,
+                            sort_by_area=True,
                             solver='z3',
                             logic='LIA',
                             timeout=300,
@@ -190,22 +193,30 @@ def compute_all_instances(mode = 'SAT',
         either SAT or SMT.
     input_range : range or list of int
         instances to compute.
-    plot : bool, default True
-        if True, plot the results as images.
+    input_folder : string, default './instances/'
+        folder from which the instance files are taken.
     save_to_file : bool, default True
         if True, save the computation results.
+    output_folder : string, optional
+        folder in which the results are saved. If not given, the results are saved in the following folder hierarchy:
+            ./<mode>/out/(no_)rotation/(no_)symmetry_breaking/(no_)sorting_by_area/.
+    show_plot : bool, default True
+        if True, show the plots of the resulting configuration as images.
     save_plot : bool, default False
-        if True, save the resulting plots.
+        if True, save the plot images. Only useful if save_to_file is True. This is independent from show_plot.
+    plot_folder : string, optional
+        folder in which to save the plot images. Only useful if save_plot is True.
+        If not given, the results are saved in a folder called 'plot/' where the computation results are saved.
     verbose : bool, default True
     allow_rotation : bool, default False
         if True, allow rotation of the rectangles.
-    sorting_by_area : bool, default True
-        if True, sort rectangles be area before passing them to the solver.
     break_symmetries : bool, default True
         if True, let the solver break symmetries.
+    sort_by_area : bool, default True
+        if True, sort rectangles be area before passing them to the solver.
     solver : string, default 'z3'
         Underlying solver to use, only z3 and cvc5 are currently supported. Only used if mode = 'SMT'.
-    logi : string, default 'LIA'
+    logic : string, default 'LIA'
          Underlying SMT-LIB logic to use. Only used if mode = 'SMT'.
     timeout : int, default 300
         timeout of each computation in seconds.
@@ -218,32 +229,39 @@ def compute_all_instances(mode = 'SAT',
         print("ERROR! The mode must either be SAT or SMT!")
         return
 
-    input_folder = "./instances/"
-    output_folder = f"./{mode}/out/"
+    if output_folder is None:
+        output_folder = f"./{mode}/out/"
 
-    if allow_rotation:
-        output_folder += "rotation/"
-    else:
-        output_folder += "no_rotation/"
+        if allow_rotation:
+            output_folder += "rotation/"
+        else:
+            output_folder += "no_rotation/"
 
-    if sorting_by_area:
-        output_folder += "sorting_by_area/"
-    else:
-        output_folder += "no_sorting_by_area/"
+        if break_symmetries:
+            output_folder += "symmetry_breaking/"
+        else:
+            output_folder += "no_symmetry_breaking/"
 
-    plot_folder = output_folder + "plot/"
-    output_folder += "txt/"
-    if not os.path.isdir(plot_folder): os.makedirs(plot_folder)
+        if sort_by_area:
+            output_folder += "sorting_by_area/"
+        else:
+            output_folder += "no_sorting_by_area/"
+
+    if plot_folder is None:
+        plot_folder = output_folder + "plot/"
+
+    if save_plot:
+        if not os.path.isdir(plot_folder): os.makedirs(plot_folder)
     if not os.path.isdir(output_folder): os.makedirs(output_folder)
 
     print("")
     print(50*"=")
     for i in input_range:
-        ins_filename = input_folder + f"ins-{i+1}.txt"
-        solution_filename = output_folder + f"ins-{i+1}-sol.txt"
-        W, n, rectangles = read_instance(ins_filename)
+        ins_filename = f"ins-{i+1}.txt"
+        solution_filename = os.path.join(output_folder, f"ins-{i+1}-sol.txt")
+        W, n, rectangles = read_instance(os.path.join(input_folder, ins_filename))
 
-        if sorting_by_area:
+        if sort_by_area:
             rectangles = sort_by_area(rectangles)
 
         m = np.argmax([r.w * r.h for r in rectangles])
@@ -269,15 +287,15 @@ def compute_all_instances(mode = 'SAT',
             print(f"Execution time in seconds: {execution_time:.3f}")
 
             fig, ax = visualize(W, H, positioned_rectangles, **plot_kw)
-            fig.suptitle(f"{ins_filename.split('/')[-1].split('.')[0]}, {n} rectangles, W = {W}, H = {H}")
+            fig.suptitle(f"{ins_filename.split('.')[0]}, {n} rectangles, W = {W}, H = {H}")
             fig.tight_layout(pad=1)
 
             if save_to_file:
                 if save_plot:
-                    plt.savefig(plot_folder + ins_filename.split('/')[-1].split('.')[0] + "." + plot_output_format.split('.')[-1])
+                    plt.savefig(plot_folder + ins_filename.split('.')[0] + "." + plot_output_format.split('.')[-1])
                 save_solution(solution_filename, W, H, positioned_rectangles)
                 write_execution_time(solution_filename, execution_time)
-            if plot:
+            if show_plot:
                 plt.show()
             else:
                 plt.close(fig)
