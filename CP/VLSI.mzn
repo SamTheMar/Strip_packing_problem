@@ -6,7 +6,7 @@ int: n;
 set of int: circuits = 1..n;
 array[circuits,1..2] of int: dims;
 
-int: search_heuristic = 1; % 1 dom_deg, 2 impact, 3 indomain_order
+int: search_heuristic = 1; % 1 dom_deg, 2 impact, 3 input_order
 int: restart_strategy = 2; % 1 luby 150, 2 geometric 2 50, 3 niente
 
 array[circuits] of int: ordering = arg_sort([dims[i,1]*dims[i,2]|i in circuits]);

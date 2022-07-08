@@ -37,10 +37,10 @@ constraint cumulative(y, [dimY[i]| i in CIRCUITS], [dimX[i]| i in CIRCUITS], w) 
 constraint forall(i,j in CIRCUITS where j>i)(
 if dimX[i]+dimX[j]>w then y[i]<y[j] -> y[i]+dimY[i]<=y[j] /\ y[j]<y[i]-> y[j]+dimY[j]<=y[i] endif);
 
-/*
+
 constraint forall(i,j in CIRCUITS where j>i)(
 dimY[i]+dimY[j]>l -> (x[i]<x[j] -> x[i]+dimX[i]<=x[j] /\ x[j]<x[i]-> x[j]+dimX[j] <=x[i]));
-*/
+
 
 % rows and columns symmetry
 constraint symmetry_breaking_constraint(

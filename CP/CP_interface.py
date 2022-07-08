@@ -20,31 +20,30 @@ from common.utils import read_instance,save_solution,PositionedRectangle,Rectang
 timeout = timedelta(seconds=300) #300
 
 rotation = False
-ordering = False
+ordering = True
 
 if rotation:
     model_url = "./CP/VLSI-Rotation.mzn"
 else:
-    model_url = "./CP/VLSI.mzn"
-    #model_url = "./CP/VLSI_CP.mzn"
+    #model_url = "./CP/VLSI.mzn"
+    model_url = "./CP/VLSI_CP.mzn"
 
 model = Model(model_url) # modify search and restart strategy in the model file
 solver = Solver.lookup("chuffed")
 
 time_tables = []
 
-for instance_num in range(1,41):
-    input_url = "./CP/CP_instances/ins-%d.dzn"%instance_num
-    #input_url = './instances/ins-%d.txt'%instance_num
+for instance_num in range(1,2):
+    #input_url = "./CP/CP_instances/ins-%d.dzn"%instance_num
+    input_url = './instances/ins-%d.txt'%instance_num
     if rotation:
         output_url = "./CP/CP_solutions_rotation/ins-%d-sol.txt"%instance_num
     else:
         output_url = "./CP/CP_solutions/ins-%d-sol.txt"%instance_num
 
     instance = Instance(solver, model)
-    instance.add_file(input_url)
+    # instance.add_file(input_url)
 
-    '''
     W, n, rectangles = read_instance(input_url)
 
     if ordering:
@@ -65,7 +64,6 @@ for instance_num in range(1,41):
     instance["sbc"] = sbc+1
     instance["dimX"] = [r.w for r in rectangles]
     instance["dimY"] = [r.h for r in rectangles]
-    '''
 
     try:
         start_time = time()
