@@ -4,74 +4,48 @@ from time import time
 
 import sys
 sys.path.append("./")
-from common.utils import write_execution_time,read_instance,save_solution
+from common.utils import write_execution_time,read_instance
 
 import numpy as np
 import math
 
-'''
-import sys
-sys.path.append('./')
-from common.utils import read_instance,save_solution,PositionedRectangle,Rectangle,write_execution_time
-'''
-
-
-
 timeout = timedelta(seconds=300) #300
 
-rotation = False
+rotation = True
 ordering = True
 
 if rotation:
-    model_url = "./CP/VLSI-Rotation.mzn"
+    model_url = "./CP/VLSI_Rotation_CP.mzn"
 else:
-    #model_url = "./CP/VLSI.mzn"
     model_url = "./CP/VLSI_CP.mzn"
 
-model = Model(model_url) # modify search and restart strategy in the model file
+model = Model(model_url)
 solver = Solver.lookup("chuffed")
-
-time_tables = []
 
 for ss in range(1, 4):
     for rs in range(1,4):
-        for instance_num in range(1,41):
-            #input_url = "./CP/CP_instances/ins-%d.dzn"%instance_num
+        for instance_num in range(1,2):
             input_url = './instances/ins-%d.txt'%instance_num
             output_url = './CP/out'
             if rotation:
                 output_url = output_url + '/rotation'
-                if rs == 1:
-                    output_url = output_url + '/luby'
-                elif rs == 2:
-                    output_url = output_url + '/geometric'
-                else:
-                    output_url = output_url + '/no_restart'
-                if ss == 1:
-                    output_url = output_url + '/dom_w_deg'
-                elif ss == 2:
-                    output_url = output_url + '/impact'
-                else:
-                    output_url = output_url + '/non_increasing_area'
-                output_url = output_url + '/ins-%d-sol.txt'%instance_num
             else:
                 output_url = output_url + '/no_rotation'
-                if rs == 1:
-                    output_url = output_url + '/luby'
-                elif rs == 2:
-                    output_url = output_url + '/geometric'
-                else:
-                    output_url = output_url + '/no_restart'
-                if ss == 1:
-                    output_url = output_url + '/dom_w_deg'
-                elif ss == 2:
-                    output_url = output_url + '/impact'
-                else:
-                    output_url = output_url + '/non_increasing_area'
-                output_url = output_url + '/ins-%d-sol.txt'%instance_num
+            if rs == 1:
+                output_url = output_url + '/luby'
+            elif rs == 2:
+                output_url = output_url + '/geometric'
+            else:
+                output_url = output_url + '/no_restart'
+            if ss == 1:
+                output_url = output_url + '/dom_w_deg'
+            elif ss == 2:
+                output_url = output_url + '/impact'
+            else:
+                output_url = output_url + '/non_increasing_area'
+            output_url = output_url + '/ins-%d-sol.txt'%instance_num
 
             instance = Instance(solver, model)
-            # instance.add_file(input_url)
 
             W, n, rectangles = read_instance(input_url)
 
@@ -100,7 +74,6 @@ for ss in range(1, 4):
                 start_time = time()
                 result = instance.solve(timeout=timeout)
                 execution_time = time()-start_time
-                time_tables.append(execution_time)
 
                 with open(output_url, "w") as f:
                     f.write(str(result))
