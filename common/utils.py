@@ -395,11 +395,11 @@ def make_stats_table_with_baseline(execution_time_data, ax, bbox, bar_colors):
     baseline_times = execution_time_data[0]
     spaces = 3
     rows = [' ' * spaces for i in range(len(execution_time_data))]
-    cols = ('Solved \ninstances', 'Average\nruntime', 'Relative\nruntime')
+    cols = ('Solved \ninstances', 'Average\nruntime', 'Mean rel.\nruntime')
 
     stats = [get_timing_stats(execution_times, baseline_times) for execution_times in execution_time_data]
     t = [[f"{s['solved instances']}/40", f"{s['average time (solved)']:.2f} s", f"{s['relative performance']:.2f}"] for s in stats]
-    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox, fontsize = 333)
+    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox, cellLoc = 'center')
     table.set_zorder(200)
 
 
@@ -413,7 +413,7 @@ def make_stats_table(execution_time_data, ax, bbox, bar_colors):
 
     stats = [get_timing_stats(execution_times) for execution_times in execution_time_data]
     t = [[f'{s["solved instances"]}/40', f'{s["average time (solved)"]:.2f} s'] for s in stats]
-    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
+    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox, cellLoc = 'center')
     table.set_zorder(200)
 
 
