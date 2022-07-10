@@ -21,11 +21,16 @@ array[CIRCUITS,POSITIONS] of var 0..1: x;
 
 constraint forall(p in TILES)(sum([C[j,p]*x[i,j]|i in CIRCUITS, j in V[i-1]+1..V[i]])<=1);
 
-constraint forall(i in 2..nCircuits)(sum([x[i,j]|j in V[i-1]+1..V[i]])=1);
-constraint sum([x[1,j]|j in V[0]+1..V[1]])=0;
-%constraint forall(i in CIRCUITS)(sum([x[i,j]|j in V[i-1]+1..V[i]])=1);
+constraint forall(i in CIRCUITS)(sum([x[i,j]|j in V[i-1]+1..V[i]])=1);
 
-constraint sum([x[bc,j] | j in filteredPosBC])=1; % togliere lui
+constraint forall(i in CIRCUITS)(sum([x[i,j]|j in POSITIONS diff V[i-1]+1..V[i]])=0);
+%constraint forall(i in CIRCUITS where i != bc)(sum([x[i,j]|j in V[i-1]+1..V[i]])=1);
+
+%constraint forall(i in CIRCUITS where i != bc)(sum([x[i,j]|j in POSITIONS diff V[i-1]+1..V[i]])=0);
+
+%constraint sum([x[bc,j] | j in filteredPosBC])=1; % togliere lui
+
+%constraint sum([x[bc,j] | j in POSITIONS diff filteredPosBC])=0; % togliere lui
 
 constraint sum([C[j,p]*x[i,j]|i in CIRCUITS, j in V[i-1]+1..V[i], p in TILES])<=W*H;
 

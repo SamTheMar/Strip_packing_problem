@@ -30,7 +30,16 @@ constraint forall(a in ASSOC)(
   sum([x[assoc[a,2],j] | j in V[assoc[a,2]-1]+1..V[assoc[a,2]]  ])
   = assoc[a,3]);
   
+constraint forall(a in ASSOC)(
+  sum([x[assoc[a,1],j] | j in POSITIONS diff V[assoc[a,1]-1]+1..V[assoc[a,1]] ]) +
+  sum([x[assoc[a,2],j] | j in POSITIONS diff V[assoc[a,2]-1]+1..V[assoc[a,2]] ])
+  = 0);
+  
 constraint forall(i in notAssoc)(sum([x[i,j]|j in V[i-1]+1..V[i]])=1);
+
+constraint forall(i in notAssoc)(sum([x[i,j]|j in POSITIONS diff V[i-1]+1..V[i]]) = 0);
+
+
 
 %constraint sum([x[bc,j] | j in filteredPosBC])=1; % trovare le valid position anche per la rotazione
 

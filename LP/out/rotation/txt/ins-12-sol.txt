@@ -15,4 +15,4 @@
 7 3 9 16
 6 4 13 0
 
-execution time in seconds: 21.630
+execution time in seconds: 40.451

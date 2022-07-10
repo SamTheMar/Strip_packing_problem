@@ -1,0 +1,9 @@
+9 9
+5
+3 3 3 0
+3 4 0 5
+3 5 0 0
+3 6 3 3
+3 9 6 0
+
+execution time in seconds: 0.082
