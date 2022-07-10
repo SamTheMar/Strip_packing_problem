@@ -5,4 +5,4 @@
 3 5 5 0
 3 3 5 5
 
-execution time in seconds: 1.733
+execution time in seconds: 1.143
