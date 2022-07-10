@@ -489,7 +489,7 @@ def visualize_execution_times(data,
         fig = ax.get_figure()
 
     # set logarithmic scale
-    ax.set_yscale('log', base = 10)
+    ax.set_yscale('log')
 
     # 
     n_approaches, n_instances = np.shape(data)
