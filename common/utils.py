@@ -382,7 +382,7 @@ def get_timing_stats(execution_times, baseline_times = None, timeout = 300):
         return stats
     
     no_timeout = no_timeout & (baseline_times < timeout)
-    stats['relative performance'] = geometric_mean(execution_times[no_timeout]/baseline_times[no_timeout])
+    stats['mean relative runtime'] = geometric_mean(execution_times[no_timeout]/baseline_times[no_timeout])
     return stats
 
 
@@ -395,10 +395,10 @@ def make_stats_table_with_baseline(execution_time_data, ax, bbox, bar_colors):
     baseline_times = execution_time_data[0]
     spaces = 3
     rows = [' ' * spaces for i in range(len(execution_time_data))]
-    cols = ('Solved \ninstances', 'Average\nruntime', 'Mean rel.\nruntime')
+    cols = ('Solved \ninstances', 'Mean rel.\nruntime', 'Average\nruntime')
 
     stats = [get_timing_stats(execution_times, baseline_times) for execution_times in execution_time_data]
-    t = [[f"{s['solved instances']}/40", f"{s['average time (solved)']:.2f} s", f"{s['relative performance']:.2f}"] for s in stats]
+    t = [[f"{s['solved instances']}/40", f"{s['mean relative runtime']:.2f}", f"{s['average time (solved)']:.2f} s"] for s in stats]
     table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox, cellLoc = 'center')
     table.set_zorder(200)
 
