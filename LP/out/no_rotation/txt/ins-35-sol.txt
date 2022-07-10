@@ -26,4 +26,4 @@
 2 3 2 20
 2 6 7 25
 
-execution time in seconds: 281.708
+execution time in seconds: 197.796

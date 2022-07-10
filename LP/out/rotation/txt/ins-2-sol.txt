@@ -6,4 +6,4 @@
 3 6 3 3
 3 9 0 0
 
-execution time in seconds: 0.536
+execution time in seconds: 1.002
