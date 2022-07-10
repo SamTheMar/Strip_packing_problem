@@ -9,10 +9,10 @@ import os
 
 from common.utils import visualize, read_instance, save_solution, sort_by_area, write_execution_time
 
-from SMT.SMT_Lib_solver import SMT_Lib_solver
-from SMT.SMT_Lib_solver_rotated import SMT_Lib_solver_rotated
-from SAT.SAT_solver import SAT_solver
-from SAT.SAT_solver_rotated import SAT_solver_rotated
+from SMT.src.SMT_Lib_solver import SMT_Lib_solver
+from SMT.src.SMT_Lib_solver_rotated import SMT_Lib_solver_rotated
+from SAT.src.SAT_solver import SAT_solver
+from SAT.src.SAT_solver_rotated import SAT_solver_rotated
 
 
 def bisection_solve(W, H_lb, H_ub, rectangles, allow_rotation=False, verbose=True, mode = 'SAT', *args, **kwargs):

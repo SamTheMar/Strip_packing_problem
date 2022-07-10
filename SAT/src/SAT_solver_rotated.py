@@ -2,7 +2,7 @@ import numpy as np
 from z3 import *
 
 from common.utils import PositionedRectangle, Rectangle
-from SAT.SAT_solver import SAT_solver
+from SAT.src.SAT_solver import SAT_solver
 
 
 class SAT_solver_rotated(SAT_solver):
