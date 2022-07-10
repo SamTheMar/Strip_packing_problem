@@ -363,7 +363,12 @@ def get_execution_times(folder, num_instances = 40):
     return np.asarray(times)
 
 
-def get_timing_stats(execution_times, timeout = 300):
+def geometric_mean(x):
+    a = np.log(x)
+    return np.exp(a.mean())
+
+
+def get_timing_stats(execution_times, baseline_times = None, timeout = 300):
     """
     Get stats from an array of execution times.
     """
@@ -373,20 +378,42 @@ def get_timing_stats(execution_times, timeout = 300):
         'average time (all)':  execution_times.mean(),
         'average time (solved)': execution_times[no_timeout].mean()
     }
+    if baseline_times is None:
+        return stats
+    
+    no_timeout = no_timeout & (baseline_times < timeout)
+    stats['relative performance'] = geometric_mean(execution_times[no_timeout]/baseline_times[no_timeout])
     return stats
+
+
+def make_stats_table_with_baseline(execution_time_data, ax, bbox, bar_colors):
+    """
+    Make a table on the provided axes with the stats of the execution time for each computation approach.
+    The first set of times is used as a baseline for the other ones. The geometric mean of the ratio between the baseline times
+    and the other ones is shown.
+    """
+    baseline_times = execution_time_data[0]
+    spaces = 3
+    rows = [' ' * spaces for i in range(len(execution_time_data))]
+    cols = ('Solved \ninstances', 'Average\nruntime', 'Mean rel.\nruntime')
+
+    stats = [get_timing_stats(execution_times, baseline_times) for execution_times in execution_time_data]
+    t = [[f"{s['solved instances']}/40", f"{s['average time (solved)']:.2f} s", f"{s['relative performance']:.2f}"] for s in stats]
+    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox, cellLoc = 'center')
+    table.set_zorder(200)
 
 
 def make_stats_table(execution_time_data, ax, bbox, bar_colors):
     """
     Make a table on the provided axes with the stats of the execution time for each computation approach.
     """
-    spaces = 10
+    spaces = 6
     rows = [' ' * spaces for i in range(len(execution_time_data))]
     cols = ('Solved \ninstances', 'Average\nruntime')
 
     stats = [get_timing_stats(execution_times) for execution_times in execution_time_data]
     t = [[f'{s["solved instances"]}/40', f'{s["average time (solved)"]:.2f} s'] for s in stats]
-    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox)
+    table = ax.table(t, rowLabels=rows, alpha = 1, rowColours=bar_colors, colLabels=cols, bbox=bbox, cellLoc = 'center')
     table.set_zorder(200)
 
 
@@ -396,6 +423,7 @@ def visualize_execution_times(data,
                               timeout = 300,
                               instance_labels = None,
                               show_stats_table = True,
+                              first_is_baseline = False,
                               show_grid = True,
                               label_axis = True,
                               ax = None,
@@ -404,7 +432,7 @@ def visualize_execution_times(data,
                               plot_height = 720,
                               aspect = 16/9,
                               dpi = 100,
-                              stats_table_bbox=(0.05, 0.5, 0.17, 0.2),
+                              stats_table_bbox=(0.03, 0.5, 0.17, 0.3),
                               bar_colors = None,
                               starting_color = 0):
     """
@@ -423,22 +451,26 @@ def visualize_execution_times(data,
     instance_labels : array or array-like, optional
         Array of instance labels. If not provided, the instances are progressively numbered starting with 1.
     show_stats_table : bool, default: True
+    first_is_baseline : bool, default: False
+        If True, the first given times are used as a baseline with which to compare the other computation times.
+        It shows the geometric mean of the ratio between the baseline times and the other times in the stats table.
+        Useful only if ``show_stats_table`` is True.
     show_grid : bool, default: True
     label_axis : bool, default: True,
         Show labels on axes.
     ax : ``matplotlib.axes._subplots.AxesSubplot``, optional
         The axes on which to show the plot.
     bar_width : float, optional
-        Total width of all the bars for the same value. Defaults to 0.9 IF num_approaches is 1, 0.6 otherwise.
+        Total width of all the bars for the same value. Defaults to 0.9 if ``num_approaches`` is 1, 0.6 otherwise.
     bar_clearance : float, default: 0.95
-        Clearence between the bars for the same value. Useful only if num_approaches is greater than 1.
+        Clearence between the bars for the same value. Useful only if ``num_approaches`` is greater than 1.
     plot_height : int, default: 720
-        Plot height in pixels. Useful only if ax is not provided.
+        Plot height in pixels. Useful only if ``ax`` is not provided.
     aspect : float, default: 16/9
-        Aspect ratio of the plot figure. Useful only if ax is not provided.
+        Aspect ratio of the plot figure. Useful only if ``ax`` is not provided.
     dpi : float, default: 100
-        Useful only if ax is not provided.
-    stats_table_bbox : tuple, default: (0.05, 0.5, 0.17, 0.2)
+        Useful only if ``ax`` is not provided.
+    stats_table_bbox : tuple, default: (0.03, 0.5, 0.17, 0.3)
         Bounding box of the stats table. It is a tuple in the form (x_pos, y_pos, width, height).
     bar_colors : list of colors, optional
         colors of the bars.
@@ -503,13 +535,19 @@ def visualize_execution_times(data,
 
     if label_axis:
         ax.set_xlabel("Instance number")
-        ax.set_ylabel("Execution time in seconds")
+        ax.set_ylabel("Computation time in seconds")
 
     # draw grid, stats and legend
     if show_grid:
         ax.set_axisbelow(True)
-        ax.grid(axis = 'y')
-    if show_stats_table: make_stats_table(data, ax, stats_table_bbox, bar_colors)
+        ax.grid(axis = 'y', zorder = 0)
+
+    if show_stats_table:
+        if first_is_baseline:
+            make_stats_table_with_baseline(data, ax, stats_table_bbox, bar_colors)
+        else:
+            make_stats_table(data, ax, stats_table_bbox, bar_colors)
+
     if draw_legend: ax.legend()
 
     if title is not None:
@@ -525,6 +563,7 @@ def visualize_execution_times_two_plots(data_upper,
                                         plot_height = 720,
                                         aspect = 16/9,
                                         dpi = 100,
+                                        hspace = 0.1,
                                         suptitle = None,
                                         kw_upper = {},
                                         kw_lower = {}):
@@ -540,11 +579,13 @@ def visualize_execution_times_two_plots(data_upper,
     axs : list of ``matplotlib.axes._subplots.AxesSubplot``, optional
         The axes on which to show the plot.
     plot_height : int, default: 720
-        Plot height in pixels. Useful only if ax is not provided.
+        Plot height in pixels. Useful only if ``ax`` is not provided.
     aspect : float, default: 16/9
-        Aspect ratio of the plot figure. Useful only if ax is not provided.
+        Aspect ratio of the plot figure. Useful only if ``ax`` is not provided.
     dpi : float, default: 100
-        Useful only if ax is not provided.
+        Useful only if ``ax`` is not provided.
+    hspace: float, default: 0.1
+        parameter passed to ``fig.subplots_adjust``
     suptitle : string, optional
         Title to display on top of the figure.
     kw_upper : dict, optional
@@ -563,9 +604,9 @@ def visualize_execution_times_two_plots(data_upper,
     ax1, ax2 = axs
 
     if "stats_table_bbox" not in kw_upper.keys():
-        kw_upper["stats_table_bbox"] = (0.05, 0.6, 0.17, 0.3)
+        kw_upper["stats_table_bbox"] = (0.05, 0.6, 0.17, 0.35)
     if "stats_table_bbox" not in kw_lower.keys():
-        kw_lower["stats_table_bbox"] = (0.05, 0.2, 0.17, 0.3)
+        kw_lower["stats_table_bbox"] = (0.05, 0.05, 0.17, 0.35)
 
     visualize_execution_times(data_upper, ax = ax1, label_axis=False, **kw_upper)
     visualize_execution_times(data_lower, ax = ax2, **kw_lower)
@@ -575,6 +616,6 @@ def visualize_execution_times_two_plots(data_upper,
         fig.suptitle(suptitle)
 
     fig.tight_layout()
-    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(hspace=hspace)
 
     return fig, axs
