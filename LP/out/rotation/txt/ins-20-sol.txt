@@ -22,4 +22,4 @@
 19 4 0 17
 20 4 3 0
 
-execution time in seconds: 156.771
+execution time in seconds: 220.483

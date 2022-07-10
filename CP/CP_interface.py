@@ -24,7 +24,7 @@ solver = Solver.lookup("chuffed")
 
 for ss in range(1, 4):
     for rs in range(1,4):
-        for instance_num in range(1,2):
+        for instance_num in range(1,41):
             input_url = './instances/ins-%d.txt'%instance_num
             output_url = './CP/out'
             if rotation:

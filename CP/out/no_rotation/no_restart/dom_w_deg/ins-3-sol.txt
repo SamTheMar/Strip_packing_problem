@@ -7,4 +7,4 @@
 3 4 7 6
 3 3 4 7
 
-execution time in seconds: 1.172
+execution time in seconds: 2.735

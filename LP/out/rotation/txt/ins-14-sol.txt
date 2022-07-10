@@ -16,4 +16,4 @@
 6 4 15 5
 6 5 15 0
 
-execution time in seconds: 42.766
+execution time in seconds: 83.876

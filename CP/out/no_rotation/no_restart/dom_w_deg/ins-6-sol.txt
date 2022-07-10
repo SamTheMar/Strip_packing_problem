@@ -10,4 +10,4 @@
 3 4 4 6
 3 3 4 10
 
-execution time in seconds: 1.160
+execution time in seconds: 2.637
