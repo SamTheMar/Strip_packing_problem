@@ -78,7 +78,7 @@ if __name__ == "__main__":
     - search_strategy: {search_strategy[ss-1]}
     - restart_strategy: {restart_strategy[rs-1]}\n""")
 
-    timeout = timedelta(seconds=300) #300
+    timeout = timedelta(seconds=300)
 
     if rotation:
         model_url = "./CP/src/VLSI_rotation_CP.mzn"

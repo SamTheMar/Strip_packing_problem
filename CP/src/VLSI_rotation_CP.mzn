@@ -1,4 +1,3 @@
-%libraries
 include "globals.mzn";
 
 int: w;
@@ -15,7 +14,7 @@ CIRCUITS: sbc;
 array[CIRCUITS] of int: dimX;
 array[CIRCUITS] of int: dimY;
 
-int: search_heuristic; % 1 dom_deg, 2 impact, 3 input_order
+int: search_heuristic; % 1 dom_w_deg, 2 impact, 3 input_order
 int: restart_strategy; % 1 luby(150), 2 geometric(2,50), 3 niente
 
 
