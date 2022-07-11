@@ -8,15 +8,15 @@ int: maxH;
 
 set of int: CIRCUITS = 1..n;
 
-% biggest circuit and second biggest circuit
+% biggest item and second biggest item
 CIRCUITS: bc;
 CIRCUITS: sbc;
 
 array[CIRCUITS] of int: dimX;
 array[CIRCUITS] of int: dimY;
 
-int: search_heuristic; % 1 dom_deg, 2 impact, 3 indomain_order
-int: restart_strategy; % 1 luby 150, 2 geometric 2 50, 3 niente
+int: search_heuristic; % 1 dom_deg, 2 impact, 3 input_order
+int: restart_strategy; % 1 luby(150), 2 geometric(2,50), 3 niente
 
 
 array [CIRCUITS] of var bool : rot ;
@@ -28,41 +28,51 @@ array [CIRCUITS] of var 0..maxH-min(dimX++dimY): y;
 
 var minH..maxH: l = max(i in CIRCUITS)(y[i] + rdimY[i]);
 
-%=========================================================================================
-
-
-
+% rdims domain reductions
 constraint forall(i in CIRCUITS)(rdimX[i] = dimX[i] \/ rdimX[i] = dimY[i]);
 constraint forall(i in CIRCUITS)(rdimY[i] = dimX[i] \/ rdimY[i] = dimY[i]);
 
+% main rotation constraints
 constraint forall(i in CIRCUITS)(rot[i] -> (rdimX[i]==dimY[i] /\ rdimY[i]==dimX[i]));
 constraint forall(i in CIRCUITS)(not(rot[i]) -> (rdimX[i]==dimX[i] /\ rdimY[i]== dimY[i]));
   
-constraint forall(i in CIRCUITS)(if dimX[i]==dimY[i] \/ dimY[i]>w \/ dimX[i]>maxH then rot[i]=false endif);
+% new symmetry breaking constraint
+constraint forall(i in CIRCUITS)(if dimX[i]==dimY[i] then rot[i]=false endif);
+% rot domain reductions
+constraint forall(i in CIRCUITS)(if dimY[i]>w then rot[i]=false endif);
+constraint forall(i in CIRCUITS)(dimX[i]>l -> rot[i]=false);
 
-%overlap constrains
-constraint diffn(x, y, [rdimX[i]|i in CIRCUITS], [rdimY[i]| i in CIRCUITS]) :: domain;
+% main problem constraints
+constraint diffn(x, y, rdimX, rdimY) :: domain;
 constraint forall (i in CIRCUITS) (x[i] + rdimX[i] <= w);
 constraint forall (i in CIRCUITS) (y[i] + rdimY[i] <= l);
 
 % implied constraints
-constraint cumulative(x, [rdimX[i]| i in CIRCUITS], [rdimY[i]| i in CIRCUITS], l) :: domain;
-constraint cumulative(y, [rdimY[i]| i in CIRCUITS], [rdimX[i]| i in CIRCUITS], w) :: domain;
+constraint cumulative(x, rdimX, rdimY, l) :: domain;
+constraint cumulative(y, rdimY, rdimX, w) :: domain;
 
-% CIRCUITS which can't stay one of the side of the other are up or down
+% items which can't stay one of the side of the other are up or down
 constraint forall(i,j in CIRCUITS where j>i)(
 rdimX[i]+rdimX[j]>w -> ((y[i]<y[j] -> y[i]+rdimY[i]<=y[j]) /\ (y[j]<y[i]-> y[j]+rdimY[j]<=y[i])));
 
+% items which can't stay one on top of the other are one to the side of the other
 constraint forall(i,j in CIRCUITS where j>i)(
 dimY[i]+dimY[j]>l -> ((x[i]<x[j] -> x[i]+rdimX[i]<=x[j]) /\ (x[j]<x[i]-> x[j]+rdimX[j] <=x[i])));
 
-% rows and columns symmetry
+% break symmetries for the biggest item
+constraint symmetry_breaking_constraint(
+x[bc]<=(w-rdimX[bc]) div 2 /\ y[bc] <= (l-rdimY[bc]) div 2);
+        
+% biggest item bottom left to second biggest item
+constraint x[bc] <= x[sbc] /\ y[bc] <= y[sbc];
+
+% row-item and column-item symmetry
 constraint symmetry_breaking_constraint(
     forall (i,j in CIRCUITS where i < j) ((x[i] == x[j] /\ rdimX[i] == rdimX[j]) -> y[i] <= y[j] - rdimY[i]));
 constraint symmetry_breaking_constraint(
     forall (i,j in CIRCUITS where i < j) ((y[i] == y[j] /\ rdimY[i] == rdimY[j]) -> x[i] <= x[j] - rdimX[i]));
     
-% three blocks symmetry
+% three items symmetry
 constraint symmetry_breaking_constraint(
     forall (i,j,k in CIRCUITS where i > j /\ j > k)
         ((x[i] == x[j] /\ rdimX[i] == rdimX[j] /\ y[i] == y[k] /\ rdimY[i] + rdimY[j] == rdimY[k]) -> x[k] <= x[i] ));
@@ -70,16 +80,9 @@ constraint symmetry_breaking_constraint(
     forall (i,j,k in CIRCUITS where i > j /\ j > k)
         ((y[i] == y[j] /\ rdimY[i] == rdimY[j] /\ x[i] == x[k] /\ rdimX[i] + rdimX[j] == rdimX[k]) -> y[k] <= y[i] ));
         
-% CIRCUITS of the same dimensions
+% items of the same dimensions
 constraint symmetry_breaking_constraint(
 forall(i,j in CIRCUITS where j>i)(if rdimX[i]==rdimX[j] /\ rdimY[i]==rdimY[j] then x[i]<=x[j] /\ y[i]<=y[j] endif));
-
-% break symmetries for the biggest circuit
-constraint symmetry_breaking_constraint(
-x[bc]<=(w-rdimX[bc]) div 2 /\ y[bc] <= (l-rdimY[bc]) div 2);
-        
-% biggest circuit bottom left to second biggest circuit
-constraint x[bc] <= x[sbc] /\ y[bc] <= y[sbc];
 
 ann: search_ann_x =
 if search_heuristic == 1 then
