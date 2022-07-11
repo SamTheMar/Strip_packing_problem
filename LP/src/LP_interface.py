@@ -84,13 +84,13 @@ def solve_LP(instance_num, ordering = False, rotation = True, solver = 'gurobi')
 
     H = math.ceil(sum([rectangles[i].w * rectangles[i].h for i in range(n)])/W)-1
 
-    timeout = timedelta(seconds=300) #300
+    timeout = timedelta(seconds=300)
 
     if rotation:
         model = Model("./LP/src/VLSI_rotation_LP.mzn")
     else:
         model = Model("./LP/src/VLSI_LP.mzn")
-    solver = Solver.lookup(solver) # coin-bc, cbc, coinbc
+    solver = Solver.lookup(solver)
 
     instance = Instance(solver, model)
     instance["W"] = W
@@ -127,9 +127,6 @@ def solve_LP(instance_num, ordering = False, rotation = True, solver = 'gurobi')
         instance["nTiles"] = C.shape[1]
         instance["C"] = C
         instance["V"] = [0 if i<0 else V[i][-1] for i in range(-1,len(rectangles))]
-        if not(rotation):
-            instance["bc"] = 1 if ordering else np.argmax([r.w*r.h for r in rectangles])+1
-            instance["filteredPosBC"] = set(filterValidPositionBC(rectangles,V,W,H))
 
         inner_start_time = time()
         result = instance.solve(timeout=timeout)

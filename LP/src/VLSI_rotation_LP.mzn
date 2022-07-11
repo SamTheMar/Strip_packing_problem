@@ -1,5 +1,3 @@
-% Use this editor as a MiniZinc scratch book
-
 int: W;
 int: H;
 
@@ -7,7 +5,6 @@ int: nCircuits;
 int: nPositions;
 int: nAssoc;
 int: nTiles;
-%int: bc;
 
 set of int: CIRCUITS = 1..nCircuits;
 set of int: POSITIONS = 1..nPositions;
@@ -18,7 +15,6 @@ set of int: ASSOC = 1..nAssoc;
 array[POSITIONS,TILES] of 0..1: C;
 array[0..nCircuits] of int: V;
 array[ASSOC,1..3] of int: assoc;
-%set of int: filteredPosBC; % togliere lui
 set of int: notAssoc;
 
 array[CIRCUITS,POSITIONS] of var 0..1: x;
@@ -38,10 +34,6 @@ constraint forall(a in ASSOC)(
 constraint forall(i in notAssoc)(sum([x[i,j]|j in V[i-1]+1..V[i]])=1);
 
 constraint forall(i in notAssoc)(sum([x[i,j]|j in POSITIONS diff V[i-1]+1..V[i]]) = 0);
-
-
-
-%constraint sum([x[bc,j] | j in filteredPosBC])=1; % trovare le valid position anche per la rotazione
 
 constraint sum([C[j,p]*x[i,j]|i in CIRCUITS, j in V[i-1]+1..V[i], p in TILES])<=W*H;
 
