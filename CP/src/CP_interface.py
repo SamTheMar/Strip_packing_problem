@@ -80,9 +80,9 @@ if __name__ == "__main__":
     timeout = timedelta(seconds=300) #300
 
     if rotation:
-        model_url = "./CP/VLSI_rotation_CP.mzn"
+        model_url = "./CP/src/VLSI_rotation_CP.mzn"
     else:
-        model_url = "./CP/VLSI_CP.mzn"
+        model_url = "./CP/src/VLSI_CP.mzn"
 
     model = Model(model_url)
     solver = Solver.lookup("chuffed")

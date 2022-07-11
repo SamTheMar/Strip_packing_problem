@@ -43,11 +43,11 @@ In order to compute the SAT and SMT solutions, you need to open the notebook ``c
 ### CP 
 In order to compute the CP solutions, you need to execute the following command from the root folder:
 ```
-python CP/CP_interface.py -r <rotation> -o <ordering> -s <search_strategy> -t <restart_strategy>
+python CP/src/CP_interface.py -r <rotation> -o <ordering> -s <search_strategy> -t <restart_strategy>
 ```
 or 
 ```
-python CP/CP_interface.py --rotation <rotation> --ordering <ordering> --search_strategy <search_strategy> --restart_strategy <restart_strategy>
+python CP/src/CP_interface.py --rotation <rotation> --ordering <ordering> --search_strategy <search_strategy> --restart_strategy <restart_strategy>
 ```
 where :
 - rotation can be only True or False
@@ -58,11 +58,11 @@ where :
 ### LP
 In order to compute the LP solutions, you need to execute the following command from the root folder:
 ```
-python LP/LP_interface.py -r <rotation> -o <ordering> -s <solver>
+python LP/src/LP_interface.py -r <rotation> -o <ordering> -s <solver>
 ```
 or
 ```
-python LP/LP_interface.py --rotation <rotation> --ordering <ordering> --solver <solver>
+python LP/src/LP_interface.py --rotation <rotation> --ordering <ordering> --solver <solver>
 ```
 where :
 - rotation can be only True or False

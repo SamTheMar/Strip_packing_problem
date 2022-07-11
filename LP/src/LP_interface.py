@@ -2,7 +2,7 @@ import getopt
 import sys
 sys.path.append('./')
 from common.utils import read_instance,save_solution,PositionedRectangle,write_execution_time
-from LP.LP_utils import *
+from LP.src.LP_utils import *
 import math
 import numpy as np
 
@@ -72,9 +72,9 @@ def solve_LP(instance_num, ordering = False, rotation = True, solver = 'gurobi')
     timeout = timedelta(seconds=300) #300
 
     if rotation:
-        model = Model("./LP/VLSI_rotation_LP.mzn")
+        model = Model("./LP/src/VLSI_rotation_LP.mzn")
     else:
-        model = Model("./LP/VLSI_LP.mzn")
+        model = Model("./LP/src/VLSI_LP.mzn")
     solver = Solver.lookup(solver) # coin-bc, cbc, coinbc
 
     instance = Instance(solver, model)
