@@ -1,3 +1,4 @@
+import getopt
 import sys
 sys.path.append('./')
 from common.utils import read_instance,save_solution,PositionedRectangle,write_execution_time
@@ -10,7 +11,54 @@ from minizinc import Instance, Model, Solver
 from time import time
 
 
-def solve_LP(instance_num, ordering = False, rotation = True):
+def set_argv(argv):
+    rotation = 'False'
+    ordering = 'True'
+    solver = 'gurobi'
+    arg_help = "{0} -r <rotation> -o <ordering> -s <solver>".format(argv[0])
+    error_arg = """Argument error:
+    - rotation can be only True or False
+    - ordering can be only True or False
+    - solver can be only gurobi or coin-bc or cplex\n"""
+    to_bool = {'False': False, 'True': True}
+
+    try:
+        opts, args = getopt.getopt(argv[1:],
+                                   "hr:o:s:",
+                                   ["help", "rotation=", "ordering=", "solver="])
+
+    except:
+        print(arg_help)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print(arg_help)
+            sys.exit(2)
+        elif opt in ("-r", "--rotation"):
+            if arg == 'False' or arg == 'True':
+                rotation = arg
+            else:
+                print(error_arg)
+                sys.exit(2)
+        elif opt in ("-o", "--ordering"):
+            if arg == 'False' or arg == 'True':
+                ordering = arg
+            else:
+                print(error_arg)
+                sys.exit(2)
+        elif opt in ("-s", "--solver"):
+            print(arg)
+            if arg == 'gurobi' or arg == 'coin-bc' or arg == 'cplex':
+                solver = arg
+            else:
+                print(error_arg)
+                sys.exit(2)
+
+    return to_bool[rotation], to_bool[ordering], solver
+
+
+def solve_LP(instance_num, ordering = False, rotation = True, solver = 'gurobi'):
     
     input_url = './instances/ins-%d.txt'%instance_num
     if rotation:
@@ -28,7 +76,7 @@ def solve_LP(instance_num, ordering = False, rotation = True):
         model = Model("./LP/VLSI_rotation_LP.mzn")
     else:
         model = Model("./LP/VLSI_LP.mzn")
-    solver = Solver.lookup('gurobi') # coin-bc, cbc, coinbc
+    solver = Solver.lookup(solver) # coin-bc, cbc, coinbc
 
     instance = Instance(solver, model)
     instance["W"] = W
@@ -101,5 +149,14 @@ def solve_LP(instance_num, ordering = False, rotation = True):
     else:
         print(instance_num,"not solved")
 
-for instance_num in range(40,41):
-    solve_LP(instance_num, ordering = False, rotation = False)
+
+if __name__ == "__main__":
+    rotation, ordering, solver = set_argv(sys.argv)
+    
+    print(f"""Solving CP instance with
+    - rotation: {rotation}
+    - ordering: {ordering}
+    - solver: {solver}""")
+
+    for instance_num in range(1,41):
+        solve_LP(instance_num, ordering=ordering, rotation=rotation, solver=solver)
