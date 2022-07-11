@@ -33,7 +33,8 @@ pip install minizinc
 ```
 
 You also need an installation of Minizinc on your system.
-For LP you need to install ``guroby`` and ``CPLEX`` solver on your system
+
+For LP you need to install ``guroby`` and ``CPLEX`` solver on your minizinc installation
 
 ## Computation
 
@@ -51,9 +52,13 @@ python CP/src/CP_interface.py --rotation <rotation> --ordering <ordering> --sear
 ```
 where :
 - rotation can be only True or False
+    - default is False
 - ordering can be only True or False
+    - default is True
 - search_strategy can be only domw_deg, impact, input_order
+    - default is input_order
 - restart_strategy can be only luby, geometric, none
+    - default is luby
 
 ### LP
 In order to compute the LP solutions, you need to execute the following command from the root folder:
@@ -66,8 +71,11 @@ python LP/src/LP_interface.py --rotation <rotation> --ordering <ordering> --solv
 ```
 where :
 - rotation can be only True or False
+    - default is False
 - ordering can be only True or False
+    - default is True
 - solver can be only gurobi or coin-bc or cplex
+    - default is gurobi
 
 ## Visualization
 You can visualize:
