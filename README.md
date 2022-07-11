@@ -33,3 +33,43 @@ pip install minizinc
 ```
 
 You also need an installation of Minizinc on your system.
+For LP you need to install ``guroby`` and ``CPLEX`` solver on your system
+
+## Computation
+
+### SAT and SMT
+In order to compute the SAT and SMT solutions, you need to open the notebook ``computation.ipynb`` (in the folder ``common``) and execute it.
+
+### CP 
+In order to compute the CP solutions, you need to execute the following command from the root folder:
+```
+python CP/CP_interface.py -r <rotation> -o <ordering> -s <search_strategy> -t <restart_strategy>
+```
+or 
+```
+python CP/CP_interface.py --rotation <rotation> --ordering <ordering> --search_strategy <search_strategy> --restart_strategy <restart_strategy>
+```
+where :
+- rotation can be only True or False
+- ordering can be only True or False
+- search_strategy can be only domw_deg, impact, input_order
+- restart_strategy can be only luby, geometric, none
+
+### LP
+In order to compute the LP solutions, you need to execute the following command from the root folder:
+```
+python LP/LP_interface.py -r <rotation> -o <ordering> -s <solver>
+```
+or
+```
+python LP/LP_interface.py --rotation <rotation> --ordering <ordering> --solver <solver>
+```
+where :
+- rotation can be only True or False
+- ordering can be only True or False
+- solver can be only gurobi or coin-bc or cplex
+
+## Visualization
+You can visualize:
+- the results of the computation using ``visualize_examples.ipynb``
+- all the analysis using ``analysis.ipynb``
