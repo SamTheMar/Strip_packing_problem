@@ -178,7 +178,7 @@ def compute_all_instances(mode = 'SAT',
                             verbose=True,
                             allow_rotation=False,
                             break_symmetries=True,
-                            sort_by_area=True,
+                            sort_rectangles_by_area=True,
                             solver='z3',
                             logic='LIA',
                             timeout=300,
@@ -212,7 +212,7 @@ def compute_all_instances(mode = 'SAT',
         if True, allow rotation of the rectangles.
     break_symmetries : bool, default True
         if True, let the solver break symmetries.
-    sort_by_area : bool, default True
+    sort_rectangles_by_area : bool, default True
         if True, sort rectangles be area before passing them to the solver.
     solver : string, default 'z3'
         Underlying solver to use, only z3 and cvc5 are currently supported. Only used if mode = 'SMT'.
@@ -242,7 +242,7 @@ def compute_all_instances(mode = 'SAT',
         else:
             output_folder += "no_symmetry_breaking/"
 
-        if sort_by_area:
+        if sort_rectangles_by_area:
             output_folder += "sorting_by_area/"
         else:
             output_folder += "no_sorting_by_area/"
@@ -261,7 +261,7 @@ def compute_all_instances(mode = 'SAT',
         solution_filename = os.path.join(output_folder, f"ins-{i+1}-sol.txt")
         W, n, rectangles = read_instance(os.path.join(input_folder, ins_filename))
 
-        if sort_by_area:
+        if sort_rectangles_by_area:
             rectangles = sort_by_area(rectangles)
 
         m = np.argmax([r.w * r.h for r in rectangles])
