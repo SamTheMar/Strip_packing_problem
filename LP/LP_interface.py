@@ -48,7 +48,6 @@ def set_argv(argv):
                 print(error_arg)
                 sys.exit(2)
         elif opt in ("-s", "--solver"):
-            print(arg)
             if arg == 'gurobi' or arg == 'coin-bc' or arg == 'cplex':
                 solver = arg
             else:
