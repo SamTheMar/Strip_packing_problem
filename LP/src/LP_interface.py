@@ -1,5 +1,6 @@
 import getopt
 import sys
+import os
 sys.path.append('./')
 from common.utils import read_instance,save_solution,PositionedRectangle,write_execution_time
 from LP.src.LP_utils import *
@@ -59,11 +60,25 @@ def set_argv(argv):
 
 def solve_LP(instance_num, ordering = False, rotation = True, solver = 'gurobi'):
     
-    input_url = './instances/ins-%d.txt'%instance_num
+    input_url = f"./instances/ins-{instance_num}.txt"
+    output_url = "./LP/out"
+
     if rotation:
-        output_url = "./LP/out/rotation/txt/ins-%d-sol.txt"%instance_num
+        output_url += "/rotation"
     else:
-        output_url = "./LP/out/no_rotation/txt/ins-%d-sol.txt"%instance_num
+        output_url += "/no_rotation"
+    
+    if ordering:
+        output_url += "/ordering"
+    else:
+        output_url += "/no_ordering"
+    
+    output_url += f"/{solver}"
+
+    if not os.path.isdir(output_url):
+        os.makedirs(output_url)
+    
+    output_url += f"/ins-{instance_num}-sol.txt"
 
     W, n, rectangles = read_instance(input_url)
 

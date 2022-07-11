@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import os
 import getopt
 from datetime import timedelta
 from minizinc import Instance, Model, Solver
@@ -110,6 +111,9 @@ if __name__ == "__main__":
         else:
             output_url = output_url + '/non_increasing_area'
         
+        if not os.path.isdir(output_url):
+            os.makedirs(output_url)
+
         output_url = output_url + '/ins-%d-sol.txt'%instance_num
 
         instance = Instance(solver, model)
