@@ -19,7 +19,7 @@ def set_argv(argv):
     error_arg = """Argument error:
     - rotation can be only True or False
     - ordering can be only True or False
-    - solver can be only gurobi or coin-bc or cplex\n"""
+    - solver can be only gurobi or coin-bc or cplex"""
     to_bool = {'False': False, 'True': True}
 
     try:
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     print(f"""Solving CP instance with
     - rotation: {rotation}
     - ordering: {ordering}
-    - solver: {solver}""")
+    - solver: {solver}\n""")
 
     for instance_num in range(1,41):
         solve_LP(instance_num, ordering=ordering, rotation=rotation, solver=solver)
