@@ -19,9 +19,9 @@ def set_argv(argv):
     error_arg = """Argument error:
     - rotation can be only True or False
     - ordering can be only True or False
-    - search_strategy can be only domw_deg, impact, input_order
+    - search_strategy can be only dom_w_deg, impact, input_order
     - restart_strategy can be only luby, geometric, none"""
-    to_number = {'domw_deg': 1, 'impact': 2, 'input_order': 3,
+    to_number = {'dom_w_deg': 1, 'impact': 2, 'input_order': 3,
                  'luby': 1, 'geometric': 2, 'none': 3}
     to_bool = {'False': False, 'True': True}
     
@@ -51,7 +51,7 @@ def set_argv(argv):
                 print(error_arg)
                 sys.exit(2)
         elif opt in ("-s", "--search_strategy"):
-            if arg == 'domw_deg' or arg == 'impact' or arg == 'input_order':
+            if arg == 'dom_w_deg' or arg == 'impact' or arg == 'input_order':
                 search_strategy = arg
             else:
                 print(error_arg)
@@ -67,7 +67,7 @@ def set_argv(argv):
 
 
 if __name__ == "__main__":
-    search_strategy = ['domw_deg', 'impact', 'input_order']
+    search_strategy = ['dom_w_deg', 'impact', 'input_order']
     restart_strategy = ['luby', 'geometric', 'none']
     rotation, ordering, ss, rs = set_argv(sys.argv)
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         instance["sbc"] = sbc+1
         instance["dimX"] = [r.w for r in rectangles]
         instance["dimY"] = [r.h for r in rectangles]
-        instance["search_heuristic"] = ss # 1 domw_deg, 2 impact, 3 input_order
+        instance["search_heuristic"] = ss # 1 dom_w_deg, 2 impact, 3 input_order
         instance["restart_strategy"] = rs # 1 luby(150), 2 geometric(2,50), 3 niente
 
         try:
